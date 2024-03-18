@@ -15,32 +15,36 @@ export default function BasicTable(props) {
       <Table sx={{ minWidth: 950 }} aria-label="simple table">
         <TableHead>
           <TableRow>
-            <TableCell>
+            <TableCell align="center"> {/* Align the header cell content in the center */}
+              <b></b>
+            </TableCell>
+            <TableCell align="center"> {/* Align the header cell content in the center */}
               <b>Id</b>
             </TableCell>
-            <TableCell align="right">
+            <TableCell align="center"> {/* Align the header cell content in the center */}
               <b>Text</b>
             </TableCell>
-            <TableCell align="right">
+            <TableCell align="center"> {/* Align the header cell content in the center */}
               <b>Created at</b>
             </TableCell>
-            <TableCell align="right">
+            <TableCell align="center"> {/* Align the header cell content in the center */}
               <b>Data Source</b>
             </TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map((row) => (
+          {rows.map((row, index) => (
             <TableRow
               key={row.id}
               sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
             >
-              <TableCell component="th" scope="row">
-                {row.id}
+              <TableCell component="th" scope="row" align="center">
+                {index + 1} {/* Display serial number (1-based index) */}
               </TableCell>
-              <TableCell align="right">{row.text}</TableCell>
-              <TableCell align="right">{row.created_at}</TableCell>
-              <TableCell align="right">{row.data_source}</TableCell>
+              <TableCell align="center">{row.id}</TableCell>
+              <TableCell align="center">{row.text}</TableCell>
+              <TableCell align="center">{row.created_at}</TableCell>
+              <TableCell align="center">{row.data_source}</TableCell>
             </TableRow>
           ))}
         </TableBody>
