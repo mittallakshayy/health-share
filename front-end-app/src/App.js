@@ -1,6 +1,7 @@
 import Home from "./pages/Home.js";
 import Landing from "./pages/Landing/Landing.js";
 import Navbar from "./components/Navbar.js";
+import Footer from "./components/Footer.js";
 import "./App.css";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 function App() {
@@ -11,6 +12,7 @@ function App() {
         <Route exact path="/" element={<Landing />} />
         <Route exact path="/visualize" element={<Home />} />
       </Routes>
+      <Footer></Footer>
     </BrowserRouter>
   );
 }
