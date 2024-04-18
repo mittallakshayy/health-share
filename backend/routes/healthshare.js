@@ -4,7 +4,7 @@ const db = require("../db");
 /* GET all healthshare data. */
 router.get("/alldata", async (req, res, next) => {
   try {
-    const result = await db.query("SELECT * FROM rawdata ORDER BY id ASC LIMIT 500");
+    const result = await db.query("SELECT * FROM rawdata ORDER BY id ASC LIMIT 100");
     res.status(200);
     res.json(result.rows);
   } catch (err) {

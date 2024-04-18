@@ -8,14 +8,11 @@ import LineChart from "../components/LineChart";
 
 function Home() {
   const [data, setData] = useState([]);
-  const [twitterData, setTwitterData] = useState([]);
   const [queryString, setQueryString] = useState("");
   const [anchorEl, setAnchorEl] = useState(null); // Anchor element for the menu
-
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
   };
-
   const handleMenuClose = () => {
     setAnchorEl(null);
   };
@@ -39,25 +36,24 @@ function Home() {
     }
   }, []);
 
-  const fetchTwitterData = useCallback(async () => {
-    try {
-      const response = await fetch(
-        "http://localhost:3003/healthshare/twitter-visualization",
-        {
-          mode: "cors",
-        }
-      );
-      const result = await response.json();
-      setTwitterData(result);
-    } catch (error) {
-      console.error("There was a problem with the fetch operation:", error);
-    }
-  }, []);
+  // const fetchTwitterData = useCallback(async () => {
+  //   try {
+  //     const response = await fetch(
+  //       "http://localhost:3003/healthshare/twitter-visualization",
+  //       {
+  //         mode: "cors",
+  //       }
+  //     );
+  //     const result = await response.json();
+  //     setTwitterData(result);
+  //   } catch (error) {
+  //     console.error("There was a problem with the fetch operation:", error);
+  //   }
+  // }, []);
 
   useEffect(() => {
     fetchData();
-    fetchTwitterData();
-  }, [fetchData, fetchTwitterData]);
+  }, [fetchData]);
 
   const handleQuery = async (query) => {
     try {
@@ -160,9 +156,7 @@ function Home() {
           </Menu>
         </div>
       </div>
-      <div>
-        <LineChart data={twitterData} />
-      </div>
+     
       <div>
         <DisplayTable data={data} />
       </div>

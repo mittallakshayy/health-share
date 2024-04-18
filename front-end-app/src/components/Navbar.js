@@ -1,6 +1,7 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import HealthAndSafetyIcon from "@mui/icons-material/HealthAndSafety";
 import "./Navbar.css";
+import { IconName } from 'react-icons/hi';
 
 const Navbar = () => {
   return (
@@ -11,7 +12,8 @@ const Navbar = () => {
       </div>
       <div className="navbar-links-container">
         <a href="/">Home</a>
-        <a href="/visualize">Analytics</a>
+        <a href="/visualize">Data</a>
+        <a href="/analyze">Analytics</a>
         <a href="">About</a>
         <a href="">Contact</a>
 
