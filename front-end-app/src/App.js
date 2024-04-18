@@ -39,7 +39,7 @@ function App() {
 
   const fetchTwitterData = useCallback(async () => {
     try {
-      const response = await fetch("http://localhost:3001/healthshare/twitter-visualization", {
+      const response = await fetch("http://localhost:3003/healthshare/twitter-visualization", {
         mode: "cors",
       });
       const result = await response.json();
