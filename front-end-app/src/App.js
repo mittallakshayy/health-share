@@ -24,7 +24,7 @@ function App() {
 
   const fetchData = useCallback(async () => {
     try {
-      const response = await fetch("http://localhost:3001/healthshare/alldata", {
+      const response = await fetch("http://localhost:3003/healthshare/alldata", {
         mode: "cors",
       });
       const result = await response.json();
@@ -41,7 +41,7 @@ function App() {
 
   const handleQuery = async (query) => {
     try {
-      const url = new URL("http://localhost:3001/healthshare/querydata");
+      const url = new URL("http://localhost:3003/healthshare/querydata");
       url.searchParams.append("query", query);
       const response = await fetch(url, {
         mode: "cors",
