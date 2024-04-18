@@ -4,7 +4,7 @@ const db = require("../db");
 /* GET all healthshare data. */
 router.get("/alldata", async (req, res, next) => {
   try {
-    const result = await db.query("SELECT * FROM rawdata ORDER BY id ASC LIMIT 50 ");
+    const result = await db.query("SELECT * FROM rawdata ORDER BY id ASC LIMIT 500");
     res.status(200);
     res.json(result.rows);
   } catch (err) {
@@ -27,7 +27,7 @@ router.get("/querydata", async (req, res, next) => {
 router.get("/sortbysource", async (req, res, next) => {
   try {
     const source=req.query.source;
-    const result = await db.query('SELECT * FROM rawdata WHERE data_source = $1 LIMIT 20', [source]);
+    const result = await db.query('SELECT * FROM rawdata WHERE data_source = $1 LIMIT 400', [source]);
     console.log(source);
     res.status(200);
     res.json(result.rows);
