@@ -36,4 +36,20 @@ router.get("/sortbysource", async (req, res, next) => {
     res.status(500).send("Internal Server Error");
   }
 });
+
+router.get("/twitter-visualization", async (req, res, next) => {
+  try {
+    const source=req.query.source;
+    const result = await db.query(`SELECT TO_CHAR("created_at", 'YYYY-MM-DD') AS date, COUNT(id) AS count
+    FROM rawdata
+    GROUP BY TO_CHAR("created_at", 'YYYY-MM-DD')
+    ORDER BY date ASC;`);
+    console.log(source);
+    res.status(200);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+});
 module.exports = router;

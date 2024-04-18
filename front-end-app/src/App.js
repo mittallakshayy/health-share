@@ -5,9 +5,11 @@ import HomeIcon from "@mui/icons-material/Home";
 import { Menu, MenuItem } from "@mui/material";
 import DownloadIcon from '@mui/icons-material/Download';
 import {utils,writeFile} from "xlsx";
+import LineChart from "./components/LineChart";
 
 function App() {
   const [data, setData] = useState([]);
+  const [twitterData, setTwitterData] = useState([]);
   const [queryString, setQueryString] = useState("");
   const [anchorEl, setAnchorEl] = useState(null); // Anchor element for the menu
 
@@ -35,9 +37,22 @@ function App() {
     }
   }, []);
 
+  const fetchTwitterData = useCallback(async () => {
+    try {
+      const response = await fetch("http://localhost:3001/healthshare/twitter-visualization", {
+        mode: "cors",
+      });
+      const result = await response.json();
+      setTwitterData(result);
+    } catch (error) {
+      console.error("There was a problem with the fetch operation:", error);
+    }
+  }, []);
+
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+    fetchTwitterData();
+  }, [fetchData, fetchTwitterData]);
 
   const handleQuery = async (query) => {
     try {
@@ -81,6 +96,7 @@ function App() {
   };
   
   return (
+    
     <div className="m-5 mb-5">
       <div className="input-group p-2 mb-5">
         <HomeIcon
@@ -134,6 +150,9 @@ function App() {
             <MenuItem onClick={() => handleSortBy("Medium")}>Articles Data</MenuItem>
           </Menu>
         </div>
+      </div>
+      <div>
+        <LineChart data={twitterData}/>
       </div>
       <div>
         <DisplayTable data={data} />
