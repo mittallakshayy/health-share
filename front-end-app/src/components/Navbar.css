@@ -1,0 +1,38 @@
+nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 90px;
+  background: #58afe2;
+}
+.navbar-cart-icon {
+  font-size: 1.15rem;
+}
+.primary-button:hover {
+  background-color: rgb(234, 234, 234);
+}
+.navbar-menu-container {
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: white;
+  font-weight: 600;
+}
+.navbar-menu-container {
+  display: none;
+}
+.navbar-links-container a {
+  margin-right: 3rem;
+  text-decoration: none;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+.nav-logo-container {
+  font-size: 1.5rem;
+  color: white;
+  font-weight: 600;
+  margin-left: 4rem;
+}
+.primary-button {
+  margin-right: 4rem;
+}
