@@ -3,6 +3,7 @@ import Analytics from "./pages/analytics.js";
 import Landing from "./pages/Landing/Landing.js";
 import Navbar from "./components/Navbar.js";
 import Footer from "./components/Footer.js";
+import Article from "./pages/DisplayArticle.js";
 import "./App.css";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 function App() {
@@ -13,6 +14,7 @@ function App() {
         <Route exact path="/" element={<Landing />} />
         <Route exact path="/visualize" element={<Home />} />
         <Route exact path="/analyze" element={<Analytics />} />
+        <Route path="/article/:articleId" element={<Article />} />
       </Routes>
       <Footer></Footer>
     </BrowserRouter>

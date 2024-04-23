@@ -1,6 +1,7 @@
 import * as React from "react";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
+import { Link } from "react-router-dom";
 import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
@@ -10,6 +11,7 @@ import TableSortLabel from "@mui/material/TableSortLabel";
 
 export default function BasicTable(props) {
   const [sortBy, setSortBy] = React.useState(null);
+  const [expandedTextId, setExpandedTextId] = React.useState(null);
   const [sortOrder, setSortOrder] = React.useState("asc");
   const rows = props.data;
   const truncateText = (text, maxLength) => {
@@ -17,6 +19,15 @@ export default function BasicTable(props) {
       return text;
     } else {
       return text.substring(0, maxLength) + "..."; // Truncate text and add ellipsis
+    }
+  };
+
+
+  const handleExpandText = (id) => {
+    if (expandedTextId === id) {
+      setExpandedTextId(null);
+    } else {
+      setExpandedTextId(id);
     }
   };
 
@@ -36,7 +47,7 @@ export default function BasicTable(props) {
 
   return (
     <TableContainer component={Paper}>
-      <Table sx={{ minWidth: 950 }} aria-label="simple table">
+      <Table sx={{ minWidth: 950, backgroundColor:"#f6fbfd" }} aria-label="simple table">
         <TableHead>
           <TableRow>
             <TableCell align="center">
@@ -75,7 +86,33 @@ export default function BasicTable(props) {
                 {index + 1}
               </TableCell>
               <TableCell align="center">{row.id}</TableCell>
-              <TableCell align="center">{truncateText(row.text, 100)}</TableCell>
+              <TableCell align="center">
+                {row.data_source === "Medium" ? (
+                  <Link to={`/article/${row.id}`}
+                    style={{ background: "none",color: "black", border: "none", cursor: "pointer", textDecoration:"none"}}
+                    onMouseOver={(e) => e.target.style.color = "#2598da"}
+                    onMouseOut={(e) => e.target.style.color = "black"}  
+                  >
+                    {truncateText(row.text, 100)}
+                  </Link>
+                ) : (
+                  <>
+                    {expandedTextId === row.id ? (
+                      <>
+                        {row.text}
+                        {" "}
+                        <span style={{ color: "#238bc8", cursor: "pointer" }} onClick={() => handleExpandText(row.id)}>less</span>
+                      </>
+                    ) : (
+                      <>
+                        {truncateText(row.text, 100)}
+                        {" "}
+                        <span style={{ color: "#238bc8", cursor: "pointer" }} onClick={() => handleExpandText(row.id)}>more</span>
+                      </>
+                    )}
+                  </>
+                )}
+              </TableCell>
               <TableCell align="center">{row.created_at}</TableCell>
               <TableCell align="center">{row.data_source}</TableCell>
               <TableCell align="center">{row.url}</TableCell>

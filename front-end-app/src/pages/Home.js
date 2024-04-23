@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from "react";
 import DisplayTable from "../components/DisplayTable";
 import HomeIcon from "@mui/icons-material/Home";
-import { Menu, MenuItem } from "@mui/material";
 import DownloadIcon from "@mui/icons-material/Download";
+import { Menu, MenuItem } from "@mui/material";
 import { utils, writeFile } from "xlsx";
-import LineChart from "../components/LineChart";
+import SearchIcon from "@mui/icons-material/Search";
 
 function Home() {
   const [data, setData] = useState([]);
@@ -36,24 +36,9 @@ function Home() {
     }
   }, []);
 
-  // const fetchTwitterData = useCallback(async () => {
-  //   try {
-  //     const response = await fetch(
-  //       "http://localhost:3003/healthshare/twitter-visualization",
-  //       {
-  //         mode: "cors",
-  //       }
-  //     );
-  //     const result = await response.json();
-  //     setTwitterData(result);
-  //   } catch (error) {
-  //     console.error("There was a problem with the fetch operation:", error);
-  //   }
-  // }, []);
-
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+  }, []);
 
   const handleQuery = async (query) => {
     try {
@@ -97,48 +82,52 @@ function Home() {
 
   return (
     <div className="m-5 mb-5">
-      <div className="input-group p-2 mb-5">
-        <HomeIcon
-          style={{
-            marginRight: "25px",
-            fontSize: "2rem",
-            marginTop: "0.2rem",
-            cursor: "pointer",
-          }}
-          onClick={() => {
-            fetchData();
-            handleClearSearch(); // Clear the search bar input
-          }}
-        />
-        <input
-          type="search"
-          id="query"
-          className="form-control rounded"
-          placeholder="Please enter your query"
-          aria-label="Search"
-          aria-describedby="search-addon"
-          value={queryString}
-          onChange={(e) => setQueryString(e.target.value)}
-        />
-        <button
-          type="button"
-          className="btn btn-outline-primary"
-          style={{ fontWeight: "bold" }}
-          onClick={() => queryString && handleQuery(queryString)}
-          data-mdb-ripple-init
-        >
-          search
-        </button>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "15px", backgroundColor: "#58afe2", color: "white" }}>
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <HomeIcon
+            style={{ marginRight: "10px", fontSize: "2rem", cursor: "pointer" }}
+            onClick={() => {
+              fetchData();
+              handleClearSearch(); // Clear the search bar input
+            }}
+          />
+          <input
+            type="search"
+            id="query"
+            style={{ marginLeft:"49rem",padding: "8px", borderRadius: "25px", border: "none", width: "320px", fontSize: "13px"}}
+            placeholder="Please enter your query"
+            aria-label="Search"
+            aria-describedby="search-addon"
+            value={queryString}
+            onChange={(e) => setQueryString(e.target.value)}
+            />
+            <SearchIcon
+            style={{
+              marginLeft: "8px",
+              fontSize: "1.5rem",
+              cursor: "pointer",
+              color: "white",
+            }}
+            onClick={() => queryString && handleQuery(queryString)}
+          />
+        </div>
         <div>
-          <button
-            type="button"
-            style={{ marginLeft: "1rem", fontWeight: "bold" }}
-            onClick={handleMenuOpen}
-            className="btn btn-outline-primary"
-          >
-            Sort By
-          </button>
-          <DownloadIcon className="mx-3" onClick={handleExport}></DownloadIcon>
+        <button
+        style={{
+          padding: "8px",
+          borderRadius: "50px", // Adjust the borderRadius for a more rounded appearance
+          fontWeight: "bold",
+          border: "none",
+          backgroundColor: "#58afe2",
+          color: "white",
+          cursor: "pointer",
+          fontSize: "15px" // Adjust the fontSize for smaller text
+        }}
+        onClick={handleMenuOpen}
+        >
+        Sort By
+      </button>
+          <DownloadIcon style={{ marginLeft: "10px", fontSize: "2rem", cursor: "pointer" }} onClick={handleExport} />
           <Menu
             anchorEl={anchorEl}
             open={Boolean(anchorEl)}
@@ -156,8 +145,8 @@ function Home() {
           </Menu>
         </div>
       </div>
-     
-      <div>
+
+      <div  style={{ paddingTop:"30px" }}>
         <DisplayTable data={data} />
       </div>
     </div>

@@ -132,8 +132,8 @@ export default function Footer() {
         className="text-center p-4"
         style={{ backgroundColor: "rgba(0, 0, 0, 0.05)" }}
       >
-        © 2024 Copyright:
-        <a className="text-reset fw-bold">HealthShare</a>
+        © 2024 Copyright: 
+        <a className="text-reset fw-bold" style={{ textDecoration: 'none' }}> HealthShare</a>
       </div>
     </MDBFooter>
   );

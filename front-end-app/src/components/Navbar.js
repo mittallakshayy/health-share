@@ -7,8 +7,9 @@ const Navbar = () => {
   return (
     <nav>
       <div className="nav-logo-container">
-        <HealthAndSafetyIcon fontSize="large" style={{ color: "white" }} />
-        HealthShare
+        <HealthAndSafetyIcon fontSize="large" style={{ color: "white", cursor:"pointer"}} />
+        <a href="/" style={{ textDecoration: 'none', color:"white" }}>
+        HealthShare</a>
       </div>
       <div className="navbar-links-container">
         <a href="/">Home</a>
