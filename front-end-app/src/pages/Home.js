@@ -5,6 +5,7 @@ import DownloadIcon from "@mui/icons-material/Download";
 import { Menu, MenuItem } from "@mui/material";
 import { utils, writeFile } from "xlsx";
 import SearchIcon from "@mui/icons-material/Search";
+import API_URL from "../apis/api";
 
 function Home() {
   const [data, setData] = useState([]);
@@ -22,12 +23,9 @@ function Home() {
 
   const fetchData = useCallback(async () => {
     try {
-      const response = await fetch(
-        "http://localhost:3003/healthshare/alldata",
-        {
-          mode: "cors",
-        }
-      );
+      const response = await fetch(API_URL + "/healthshare/api/alldata", {
+        mode: "cors",
+      });
       const result = await response.json();
       console.log(result);
       setData(result);
@@ -42,7 +40,7 @@ function Home() {
 
   const handleQuery = async (query) => {
     try {
-      const url = new URL("http://localhost:3003/healthshare/querydata");
+      const url = new URL(API_URL + "/healthshare/api/querydata");
       url.searchParams.append("query", query);
       const response = await fetch(url, {
         mode: "cors",
@@ -57,7 +55,7 @@ function Home() {
 
   const handleSortBy = async (source) => {
     try {
-      const url = new URL("http://localhost:3003/healthshare/sortbysource");
+      const url = new URL(API_URL + "/healthshare/api/sortbysource");
       url.searchParams.append("source", source);
       const response = await fetch(url, {
         mode: "cors",
@@ -82,7 +80,16 @@ function Home() {
 
   return (
     <div className="m-5 mb-5">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "15px", backgroundColor: "#58afe2", color: "white" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "15px",
+          backgroundColor: "#58afe2",
+          color: "white",
+        }}
+      >
         <div style={{ display: "flex", alignItems: "center" }}>
           <HomeIcon
             style={{ marginRight: "10px", fontSize: "2rem", cursor: "pointer" }}
@@ -94,14 +101,21 @@ function Home() {
           <input
             type="search"
             id="query"
-            style={{ marginLeft:"49rem",padding: "8px", borderRadius: "25px", border: "none", width: "320px", fontSize: "13px"}}
+            style={{
+              marginLeft: "49rem",
+              padding: "8px",
+              borderRadius: "25px",
+              border: "none",
+              width: "320px",
+              fontSize: "13px",
+            }}
             placeholder="Please enter your query"
             aria-label="Search"
             aria-describedby="search-addon"
             value={queryString}
             onChange={(e) => setQueryString(e.target.value)}
-            />
-            <SearchIcon
+          />
+          <SearchIcon
             style={{
               marginLeft: "8px",
               fontSize: "1.5rem",
@@ -112,22 +126,25 @@ function Home() {
           />
         </div>
         <div>
-        <button
-        style={{
-          padding: "8px",
-          borderRadius: "50px", // Adjust the borderRadius for a more rounded appearance
-          fontWeight: "bold",
-          border: "none",
-          backgroundColor: "#58afe2",
-          color: "white",
-          cursor: "pointer",
-          fontSize: "15px" // Adjust the fontSize for smaller text
-        }}
-        onClick={handleMenuOpen}
-        >
-        Sort By
-      </button>
-          <DownloadIcon style={{ marginLeft: "10px", fontSize: "2rem", cursor: "pointer" }} onClick={handleExport} />
+          <button
+            style={{
+              padding: "8px",
+              borderRadius: "50px", // Adjust the borderRadius for a more rounded appearance
+              fontWeight: "bold",
+              border: "none",
+              backgroundColor: "#58afe2",
+              color: "white",
+              cursor: "pointer",
+              fontSize: "15px", // Adjust the fontSize for smaller text
+            }}
+            onClick={handleMenuOpen}
+          >
+            Sort By
+          </button>
+          <DownloadIcon
+            style={{ marginLeft: "10px", fontSize: "2rem", cursor: "pointer" }}
+            onClick={handleExport}
+          />
           <Menu
             anchorEl={anchorEl}
             open={Boolean(anchorEl)}
@@ -146,7 +163,7 @@ function Home() {
         </div>
       </div>
 
-      <div  style={{ paddingTop:"30px" }}>
+      <div style={{ paddingTop: "30px" }}>
         <DisplayTable data={data} />
       </div>
     </div>

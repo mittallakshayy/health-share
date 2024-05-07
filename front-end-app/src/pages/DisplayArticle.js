@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
+import API_URL from "../apis/api";
 
 export default function Article() {
   const { articleId } = useParams();
@@ -7,7 +8,7 @@ export default function Article() {
 
   const handleArticle = useCallback(async (articleId) => {
     try {
-      const url = `http://localhost:3003/healthshare/articledata?id=${articleId}`;
+      const url = API_URL + `/healthshare/api/articledata?id=${articleId}`;
       const response = await fetch(url, {
         mode: "cors",
       });
@@ -34,11 +35,23 @@ export default function Article() {
   const paragraph3 = sentences && sentences.slice(2 * third).join(" ");
 
   return (
-    <div style={{ padding: "27px" }}> 
-
-      <div style={{ padding: "10px", backgroundColor: "#e5f3fa", fontFamily:'serif'}}>
-      <h6  style={{ color:"#1a6a98", fontWeight:'bold'}}>Click here to be redirected to the article - </h6>
-      <a href={data && data.url} style={{ color: "#1a6a98", marginBottom: "10px", display: "block" }}>{data && data.url}</a>
+    <div style={{ padding: "27px" }}>
+      <div
+        style={{
+          padding: "10px",
+          backgroundColor: "#e5f3fa",
+          fontFamily: "serif",
+        }}
+      >
+        <h6 style={{ color: "#1a6a98", fontWeight: "bold" }}>
+          Click here to be redirected to the article -{" "}
+        </h6>
+        <a
+          href={data && data.url}
+          style={{ color: "#1a6a98", marginBottom: "10px", display: "block" }}
+        >
+          {data && data.url}
+        </a>
         <p style={{ color: "#333" }}>{paragraph1}</p>
         <p style={{ color: "#333" }}>{paragraph2}</p>
         <p style={{ color: "#333" }}>{paragraph3}</p>
