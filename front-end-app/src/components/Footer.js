@@ -24,20 +24,20 @@ export default function Footer() {
         </div>
 
         <div>
-          <a href="" className="me-4 text-reset">
+          <a href="/#" className="me-4 text-reset">
             <FacebookIcon></FacebookIcon>
           </a>
 
-          <a href="" className="me-4 text-reset">
+          <a href="/#" className="me-4 text-reset">
             <XIcon></XIcon>
           </a>
-          <a href="" className="me-4 text-reset">
+          <a href="/#" className="me-4 text-reset">
             <MDBIcon fab icon="instagram" />
           </a>
-          <a href="" className="me-4 text-reset">
+          <a href="/#" className="me-4 text-reset">
             <LinkedInIcon></LinkedInIcon>
           </a>
-          <a href="" className="me-4 text-reset">
+          <a href="/#" className="me-4 text-reset">
             <GitHubIcon></GitHubIcon>
           </a>
         </div>
@@ -132,8 +132,15 @@ export default function Footer() {
         className="text-center p-4"
         style={{ backgroundColor: "rgba(0, 0, 0, 0.05)" }}
       >
-        © 2024 Copyright: 
-        <a className="text-reset fw-bold" style={{ textDecoration: 'none' }}> HealthShare</a>
+        © 2024 Copyright:
+        <a
+          href="/#"
+          className="text-reset fw-bold"
+          style={{ textDecoration: "none" }}
+        >
+          {" "}
+          HealthShare
+        </a>
       </div>
     </MDBFooter>
   );

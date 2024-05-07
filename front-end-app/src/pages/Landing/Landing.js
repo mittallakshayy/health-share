@@ -1,7 +1,6 @@
 import React from "react";
-import { useNavigate } from "react-router-dom"; 
+import { useNavigate } from "react-router-dom";
 import BannerImage from "../../Assets/home-banner-image.png";
-import Navbar from "../../components/Navbar.js";
 import { FiArrowRight } from "react-icons/fi";
 import "./Landing.css";
 
@@ -19,7 +18,7 @@ const Landing = () => {
             Trace the journey of medical professionals through the pandemic
           </h1>
 
-          <button className="secondary-button"  onClick={handleGetStartedClick}>
+          <button className="secondary-button" onClick={handleGetStartedClick}>
             Get Started <FiArrowRight />{" "}
           </button>
         </div>

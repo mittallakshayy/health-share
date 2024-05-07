@@ -36,7 +36,7 @@ function Home() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   const handleQuery = async (query) => {
     try {

@@ -1,15 +1,18 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import HealthAndSafetyIcon from "@mui/icons-material/HealthAndSafety";
 import "./Navbar.css";
-import { IconName } from 'react-icons/hi';
 
 const Navbar = () => {
   return (
     <nav>
       <div className="nav-logo-container">
-        <HealthAndSafetyIcon fontSize="large" style={{ color: "white", cursor:"pointer"}} />
-        <a href="/" style={{ textDecoration: 'none', color:"white" }}>
-        HealthShare</a>
+        <HealthAndSafetyIcon
+          fontSize="large"
+          style={{ color: "white", cursor: "pointer" }}
+        />
+        <a href="/" style={{ textDecoration: "none", color: "white" }}>
+          HealthShare
+        </a>
       </div>
       <div className="navbar-links-container">
         <a href="/">Home</a>
