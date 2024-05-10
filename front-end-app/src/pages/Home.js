@@ -42,7 +42,7 @@ function Home() {
     try {
       const url = new URL(API_URL + "/healthshare/api/querydata");
       url.searchParams.append("query", query);
-      const response = await fetch(url, {
+      const response = await fetch(API_URL + "/healthshare/api/querydata", {
         mode: "cors",
       });
       const result = await response.json();
@@ -57,7 +57,7 @@ function Home() {
     try {
       const url = new URL(API_URL + "/healthshare/api/sortbysource");
       url.searchParams.append("source", source);
-      const response = await fetch(url, {
+      const response = await fetch(API_URL + "/healthshare/api/sortbysource", {
         mode: "cors",
       });
       const result = await response.json();
