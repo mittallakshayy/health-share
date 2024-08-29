@@ -27,7 +27,6 @@ function Home() {
         mode: "cors",
       });
       const result = await response.json();
-      console.log(result);
       setData(result);
     } catch (error) {
       console.error("There was a problem with the fetch operation:", error);
@@ -40,13 +39,10 @@ function Home() {
 
   const handleQuery = async (query) => {
     try {
-      const url = new URL(API_URL + "/healthshare/api/querydata");
-      url.searchParams.append("query", query);
-      const response = await fetch(API_URL + "/healthshare/api/querydata", {
+      const response = await fetch(API_URL + `/healthshare/api/querydata?query=${query}`, {
         mode: "cors",
       });
       const result = await response.json();
-      console.log(result);
       setData(result);
     } catch (error) {
       console.error("There was a problem with the fetch operation:", error);
@@ -55,13 +51,10 @@ function Home() {
 
   const handleSortBy = async (source) => {
     try {
-      const url = new URL(API_URL + "/healthshare/api/sortbysource");
-      url.searchParams.append("source", source);
-      const response = await fetch(API_URL + "/healthshare/api/sortbysource", {
+      const response = await fetch(API_URL + `/healthshare/api/sortbysource?source=${source}`, {
         mode: "cors",
       });
       const result = await response.json();
-      console.log(result);
       setData(result);
       handleMenuClose();
     } catch (error) {
