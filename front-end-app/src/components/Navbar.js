@@ -8,7 +8,7 @@ const Navbar = () => {
     <nav>
       <div className="nav-logo-container">
         <HealthAndSafetyIcon fontSize="large" style={{ color: "white", cursor:"pointer"}} />
-        <a href="/" style={{ textDecoration: 'none', color:"white" }}>
+        <a href="/visualize" style={{ textDecoration: 'none', color:"white" }}>
         HealthShare</a>
       </div>
       <div className="navbar-links-container">

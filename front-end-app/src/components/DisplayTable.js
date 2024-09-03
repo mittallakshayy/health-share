@@ -71,9 +71,11 @@ export default function BasicTable(props) {
             <TableCell align="center">
               <b>Source</b>
             </TableCell>
+            {sortedRows && sortedRows.length > 1 && sortedRows[1].data_source === "Medium" && (
             <TableCell align="center">
               <b>URL</b>
             </TableCell>
+          )}
           </TableRow>
         </TableHead>
         <TableBody>
@@ -115,7 +117,9 @@ export default function BasicTable(props) {
               </TableCell>
               <TableCell align="center">{row.created_at}</TableCell>
               <TableCell align="center">{row.data_source}</TableCell>
-              <TableCell align="center">{row.url}</TableCell>
+               {row.data_source === "Medium" && (<TableCell align="center">
+                  <a href={row.url} style={{ color: "#1a6a98", marginBottom: "10px" }}>click here</a></TableCell>
+                )} 
             </TableRow>
           ))}
         </TableBody>
