@@ -8,17 +8,17 @@ const Navbar = () => {
     <nav>
       <div className="nav-logo-container">
         <HealthAndSafetyIcon fontSize="large" style={{ color: "white", cursor:"pointer"}} />
-        <a href="/visualize" style={{ textDecoration: 'none', color:"white" }}>
+        <a href="/" style={{ textDecoration: 'none', color:"white" }}>
         HealthShare</a>
       </div>
       <div className="navbar-links-container">
-        <a href="/">Home</a>
+        <a href="/visualize">Home</a>
         <a href="/visualize">Data</a>
         <a href="/analyze">Analytics</a>
         <a href="">About</a>
         <a href="">Contact</a>
 
-        <button className="primary-button">Get Started</button>
+        {/* <button className="primary-button">Get Started</button> */}
       </div>
     </nav>
   );
