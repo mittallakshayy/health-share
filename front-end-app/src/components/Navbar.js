@@ -15,13 +15,13 @@ const Navbar = () => {
         </a>
       </div>
       <div className="navbar-links-container">
-        <a href="/">Home</a>
+        <a href="/visualize">Home</a>
         <a href="/visualize">Data</a>
         <a href="/analyze">Analytics</a>
         <a href="">About</a>
         <a href="">Contact</a>
 
-        <button className="primary-button">Get Started</button>
+        {/* <button className="primary-button">Get Started</button> */}
       </div>
     </nav>
   );

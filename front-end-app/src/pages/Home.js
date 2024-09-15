@@ -143,14 +143,20 @@ function Home() {
             open={Boolean(anchorEl)}
             onClose={handleMenuClose}
           >
+             <MenuItem onClick={() => {fetchData();}}>
+              All
+            </MenuItem>
             <MenuItem onClick={() => handleSortBy("Twitter")}>
-              Twitter Data
+              Twitter
             </MenuItem>
             <MenuItem onClick={() => handleSortBy("Facebook")}>
-              Facebook Data
+              Facebook
             </MenuItem>
             <MenuItem onClick={() => handleSortBy("Medium")}>
-              Articles Data
+              Medium
+            </MenuItem>
+            <MenuItem onClick={() => handleSortBy("CNN")}>
+              CNN
             </MenuItem>
           </Menu>
         </div>

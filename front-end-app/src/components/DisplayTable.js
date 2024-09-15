@@ -71,6 +71,7 @@ export default function BasicTable(props) {
             <TableCell align="center">
               <b>Source</b>
             </TableCell>
+            
             <TableCell align="center">
               <b>URL</b>
             </TableCell>
@@ -87,7 +88,7 @@ export default function BasicTable(props) {
               </TableCell>
               <TableCell align="center">{row.id}</TableCell>
               <TableCell align="center">
-                {row.data_source === "Medium" ? (
+                {row.data_source === "Medium" | row.data_source === "CNN" ? (
                   <Link to={`/article/${row.id}`}
                     style={{ background: "none",color: "black", border: "none", cursor: "pointer", textDecoration:"none"}}
                     onMouseOver={(e) => e.target.style.color = "#2598da"}
@@ -98,24 +99,23 @@ export default function BasicTable(props) {
                 ) : (
                   <>
                     {expandedTextId === row.id ? (
-                      <>
-                        {row.text}
-                        {" "}
-                        <span style={{ color: "#238bc8", cursor: "pointer" }} onClick={() => handleExpandText(row.id)}>less</span>
-                      </>
-                    ) : (
-                      <>
-                        {truncateText(row.text, 100)}
-                        {" "}
-                        <span style={{ color: "#238bc8", cursor: "pointer" }} onClick={() => handleExpandText(row.id)}>more</span>
-                      </>
-                    )}
+        <>
+          {row.text || 'No Text Available'}  {/* Default text if row.text is null */}
+          <span style={{ color: "#238bc8", cursor: "pointer" }} onClick={() => handleExpandText(row.id)}>less</span>
+        </>
+      ) : (
+        <>
+          {truncateText(row.text || '', 100)}  {/* Use empty string if text is null */}
+          <span style={{ color: "#238bc8", cursor: "pointer" }} onClick={() => handleExpandText(row.id)}>more</span>
+        </>
+      )}
                   </>
                 )}
               </TableCell>
               <TableCell align="center">{row.created_at}</TableCell>
               <TableCell align="center">{row.data_source}</TableCell>
-              <TableCell align="center">{row.url}</TableCell>
+              <TableCell align="center">
+                  <a href={row.url} style={{ color: "#1a6a98", marginBottom: "10px" }}>click here</a></TableCell>
             </TableRow>
           ))}
         </TableBody>
