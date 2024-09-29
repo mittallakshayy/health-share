@@ -13,6 +13,7 @@ export default function BasicTable(props) {
   const [sortBy, setSortBy] = React.useState(null);
   const [expandedTextId, setExpandedTextId] = React.useState(null);
   const [sortOrder, setSortOrder] = React.useState("asc");
+  const startIndex = props.startIndex;
   const rows = props.data;
   const truncateText = (text, maxLength) => {
     if (text.length <= maxLength) {
@@ -21,7 +22,6 @@ export default function BasicTable(props) {
       return text.substring(0, maxLength) + "..."; // Truncate text and add ellipsis
     }
   };
-
 
   const handleExpandText = (id) => {
     if (expandedTextId === id) {
@@ -47,8 +47,8 @@ export default function BasicTable(props) {
 
   return (
     <TableContainer component={Paper}>
-      <Table sx={{ minWidth: 950, backgroundColor:"#f6fbfd" }} aria-label="simple table">
-        <TableHead>
+      <Table sx={{ minWidth: 950, backgroundColor:"aliceblue" }} aria-label="simple table">
+        <TableHead style={{backgroundColor:'aliceblue'}}>
           <TableRow>
             <TableCell align="center">
               <b></b>
@@ -77,20 +77,20 @@ export default function BasicTable(props) {
             </TableCell>
           </TableRow>
         </TableHead>
-        <TableBody>
+       <TableBody>
           {sortedRows.map((row, index) => (
             <TableRow
               key={row.id}
               sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
             >
               <TableCell component="th" scope="row" align="center">
-                {index + 1}
+                {props.startIndex + index} {/* Use startIndex to continue serial numbers */}
               </TableCell>
               <TableCell align="center">{row.id}</TableCell>
               <TableCell align="center">
-                {row.data_source === "Medium" | row.data_source === "CNN" ? (
+                {row.data_source === "Medium" || row.data_source === "CNN" ? (
                   <Link to={`/article/${row.id}`}
-                    style={{ background: "none",color: "black", border: "none", cursor: "pointer", textDecoration:"none"}}
+                    style={{ background: "none", color: "black", border: "none", cursor: "pointer", textDecoration: "none" }}
                     onMouseOver={(e) => e.target.style.color = "#2598da"}
                     onMouseOut={(e) => e.target.style.color = "black"}  
                   >
@@ -99,23 +99,24 @@ export default function BasicTable(props) {
                 ) : (
                   <>
                     {expandedTextId === row.id ? (
-        <>
-          {row.text || 'No Text Available'}  {/* Default text if row.text is null */}
-          <span style={{ color: "#238bc8", cursor: "pointer" }} onClick={() => handleExpandText(row.id)}>less</span>
-        </>
-      ) : (
-        <>
-          {truncateText(row.text || '', 100)}  {/* Use empty string if text is null */}
-          <span style={{ color: "#238bc8", cursor: "pointer" }} onClick={() => handleExpandText(row.id)}>more</span>
-        </>
-      )}
+                      <>
+                        {row.text || 'No Text Available'}  {/* Default text if row.text is null */}
+                        <span style={{ color: "#238bc8", cursor: "pointer" }} onClick={() => handleExpandText(row.id)}>less</span>
+                      </>
+                    ) : (
+                      <>
+                        {truncateText(row.text || '', 100)}  {/* Use empty string if text is null */}
+                        <span style={{ color: "#238bc8", cursor: "pointer" }} onClick={() => handleExpandText(row.id)}>more</span>
+                      </>
+                    )}
                   </>
                 )}
               </TableCell>
               <TableCell align="center">{row.created_at}</TableCell>
               <TableCell align="center">{row.data_source}</TableCell>
               <TableCell align="center">
-                  <a href={row.url} style={{ color: "#1a6a98", marginBottom: "10px" }}>click here</a></TableCell>
+                <a href={row.url} style={{ color: "#1a6a98", marginBottom: "10px" }}>click here</a>
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>

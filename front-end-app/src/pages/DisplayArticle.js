@@ -39,7 +39,7 @@ export default function Article() {
       <div
         style={{
           padding: "10px",
-          backgroundColor: "#e5f3fa",
+          backgroundColor: "#f6fbfd",
           fontFamily: "serif",
         }}
       >
