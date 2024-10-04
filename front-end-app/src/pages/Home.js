@@ -64,6 +64,7 @@ const menuStyles = {
       setData(result.data);
       setTotalRecords(result.totalRecords);
       setCurrentPage(page);
+      
       // Calculate page numbers for pagination
       const totalPages = Math.ceil(result.totalRecords / resultsPerPage);
       const numberOfPages = 6; // Max pages to show
@@ -297,38 +298,59 @@ const menuStyles = {
       <div style={{ paddingTop: "22px" }}>
       <DisplayTable data={data} startIndex={(currentPage - 1) * resultsPerPage + 1} />
       <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
-        <button
-          disabled={currentPage === 1}
-          onClick={() => currentSource ? handleSortBy(currentSource, currentPage - 1) : fetchData(currentPage - 1)}
-          style={{ marginRight: '10px', border:'1px solid black' }}
-        >
-          &#60; {/* Previous arrow */}
-        </button>
+      <button
+  disabled={currentPage === 1}
+  onClick={() => {
+    // Check if currentSource is "All" explicitly
+    if (currentSource === "All") {
+      fetchData(currentPage - 1); // Call fetchData for the previous page
+    } else {
+      handleSortBy(currentSource, currentPage - 1); // Call handleSortBy for other sources
+    }
+  }}
+  style={{ marginRight: '10px', border: '1px solid black' }}
+>
+  &#60; {/* Previous arrow */}
+</button>
 
-        {pageNumbers.map((page) => (
-          <button
-            key={page}
-            onClick={() => currentSource ? handleSortBy(currentSource, page) : fetchData(page)}
-            style={{
-              margin: '0 5px',
-              fontWeight: currentPage === page ? 'bold' : 'normal',
-              backgroundColor: currentPage === page ? '#80bddc' : 'transparent',
-              border: '1px solid #ccc',
-              padding: '5px 10px',
-              cursor: 'pointer',
-            }}
-          >
-            {page}
-          </button>
-        ))}
+{pageNumbers.map((page) => (
+  <button
+    key={page}
+    onClick={() => {
+      // Again check if currentSource is "All"
+      if (currentSource === "All") {
+        fetchData(page); // Fetch data for this specific page when source is "All"
+      } else {
+        handleSortBy(currentSource, page); // Sort by current source for this specific page
+      }
+    }}
+    style={{
+      margin: '0 5px',
+      fontWeight: currentPage === page ? 'bold' : 'normal',
+      backgroundColor: currentPage === page ? '#80bddc' : 'transparent',
+      border: '1px solid #ccc',
+      padding: '5px 10px',
+      cursor: 'pointer',
+    }}
+  >
+    {page}
+  </button>
+))}
 
-        <button
-          disabled={currentPage === Math.ceil(totalRecords / resultsPerPage)}
-          onClick={() => currentSource ? handleSortBy(currentSource, currentPage + 1) : fetchData(currentPage + 1)}
-          style={{ marginLeft: '10px', border:'1px solid black' }}
-        >
-          &#62; {/* Next arrow */}
-        </button>
+<button
+  disabled={currentPage === Math.ceil(totalRecords / resultsPerPage)}
+  onClick={() => {
+    // Check if currentSource is "All"
+    if (currentSource === "All") {
+      fetchData(currentPage + 1); // Fetch next page data when the source is "All"
+    } else {
+      handleSortBy(currentSource, currentPage + 1); // Use handleSortBy for other sources
+    }
+  }}
+  style={{ marginLeft: '10px', border: '1px solid black' }}
+>
+  &#62; {/* Next arrow */}
+</button>
       </div>
 </div>
 
