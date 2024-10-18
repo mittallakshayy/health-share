@@ -1,28 +1,11 @@
-img {
-  margin-right: 20%;
-  max-width: 110%;
-  height: auto;
-}
-
 body {
   max-width: 100%;
   overflow-x: hidden;
 }
-.home-container {
-  background: #58afe2;
-  border-radius: 0 0% 4% 4%;
-}
 
-.primary-button {
-  padding: 0.9rem 1.75rem;
-  background-color: white;
-  outline: none;
-  border: none;
-  border-radius: 5rem;
-  font-size: 1.1rem;
-  cursor: pointer;
-  font-weight: 600;
-  transition: 0.2s;
+.home-container {
+  background: #58afe2; /* Blue background */
+  border-radius: 0 0% 4% 3%;
 }
 
 .home-banner-container {
@@ -32,64 +15,123 @@ body {
   margin-right: 10%;
   margin-top: -2rem;
 }
-.home-bannerImage-container {
-  position: absolute;
-  top: -100px;
-  right: -170px;
-  z-index: -2;
-  max-width: 700px;
-}
+
 .home-image-section {
-  max-width: 600px;
-  flex: 1;
+  max-width: 600px; /* Image section width */
+  flex: 1; /* Flex grow */
 }
+
 .home-text-section {
   margin-top: -7rem;
   margin-left: 5rem;
-  flex: 1;
+  flex: 1; /* Flex grow */
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: flex-start;
 }
+
 .primary-heading {
   font-size: clamp(1.5rem, 3vw, 3.25rem);
-  color: white;
-  font-family: "Sedan", serif;
-  font-weight: 600;
-  font-style: normal;
-  /* line-height: 5rem; */
-  max-width: 600px;
+  color: white; /* Heading text color */
+  font-family: "Poppins", sans-serif; /* Change font family to a cuter option */
 }
-.primary-text {
-  font-size: clamp(1rem, 3vw, 1.5rem);
-  max-width: 500px;
-  color: white;
-  margin: 1.5rem 0rem;
-  font-family: "Sedan", serif;
-  font-weight: 400;
-  font-style: normal;
-}
+
 .secondary-button {
   margin-top: 1rem;
   padding: 1rem 2.5rem;
-  background-color: white;
+  background-color: white; /* Button background */
   outline: none;
   border: none;
-  border-radius: 5rem;
-  font-size: 1.1rem;
-  cursor: pointer;
-  font-weight: 600;
-  color: black;
-  transition: 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  border-radius: 5rem; /* Rounded button corners */
+  font-size: 1.1rem; /* Button text size */
+  cursor: pointer; /* Pointer cursor */
+  font-weight: 600; /* Button font weight */
+  color: black; /* Button text color */
+  transition: 0.2s; /* Button hover transition */
+  display: flex; /* Flex display for button */
+  align-items: center; /* Center button content */
+  justify-content: center; /* Center button content */
 }
-.secondary-button svg {
-  margin-left: 0.75rem;
-  font-size: 1.5rem;
-}
+
 .secondary-button:hover {
-  background-color: rgb(234, 234, 234);
+  background-color: rgb(234, 234, 234); /* Button hover effect */
+}
+
+.about-section {
+  background-color: rgb(186, 223, 250); /* Light blue background for section */
+  padding: 3rem 1rem; /* Padding */
+  text-align: center; /* Center-align text */
+  margin-bottom: 0; /* Ensure no margin at the bottom */
+}
+
+
+.section-title {
+  font-size: clamp(1.5rem, 3vw, 2rem); /* Responsive title size */
+  font-family: "Poppins", sans-serif; /* Change font family to a cuter option */
+  margin-bottom: 1.5rem; /* Margin below title */
+}
+
+.about-cards {
+  display: flex; /* Flex layout for cards */
+  justify-content: space-around; /* Space between cards */
+  flex-wrap: wrap; /* Wrap cards on small screens */
+  gap: 1rem; /* Gap between cards */
+  padding: 0 5%; /* Padding on the sides */
+}
+
+.about-card {
+  flex: 1; /* Allow cards to grow evenly */
+  min-width: 300px; /* Minimum width for the cards */
+  max-width: 400px; /* Increased max-width for the cards */
+  width: 100%; /* Full width up to max-width */
+  text-align: center; /* Center text */
+  background-color: rgb(255, 255, 255); /* Blue background for boxes */
+  border: 2px solid ghostwhite; /* Light border for emphasis */
+  border-radius: 12px; /* Rounded corners */
+  padding: 1.5rem; /* Padding for content */
+  transition: transform 0.3s ease; /* Smooth hover transition */
+}
+
+.about-card:hover {
+  transform: scale(1.05); /* Enlarges card on hover */
+}
+
+.icon-container {
+  background-color: rgba(255, 255, 255, 0.9); /* Slightly white background for icons */
+  border-radius: 50%; /* Circle shape */
+  padding: 1rem; /* Padding for the icon */
+  display: inline-flex; /* Align items within */
+  align-items: center; /* Centers vertically */
+  justify-content: center; /* Centers horizontally */
+  margin: 0 auto; /* Centers the icon container */
+  width: 70px; /* Fixed width for icon container */
+  height: 70px; /* Fixed height for icon container */
+}
+
+.about-icon {
+  font-size: 2rem; /* Size of the icons */
+  color: #4088b3; /* Icon color */
+}
+
+.about-card p {
+  font-family: "Poppins", sans-serif; /* Change font family to a cuter option */
+  margin-top: 0.9rem; /* Space between icon and text */
+  color: rgb(33, 90, 151); /* Text color inside the card */
+  font-size: 0.95rem;
+}
+
+/* Additional styling for images if needed */
+img {
+  margin-right: 20%; /* Margin for images */
+  max-width: 110%; /* Max width for images */
+  height: auto; /* Automatic height */
+}
+.footer {
+  background-color: #58afe2; /* Blue background */
+  color: white; /* Footer text color */
+  text-align: center; /* Center text */
+  padding: 1rem; /* Padding for the footer */
+  position: relative; /* To stay below the content */
+  margin-top: 0; /* Ensure no margin at the top */
 }

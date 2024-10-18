@@ -22,7 +22,16 @@ export default function BasicTable(props) {
       return text.substring(0, maxLength) + "..."; // Truncate text and add ellipsis
     }
   };
+  const formatDate = (dateString) => {
+    if (!dateString) { // Check for empty or undefined date
+      return ''; // Return empty string if no valid date
+    }
 
+    const date = new Date(dateString);
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${month}-${year}`;
+  };
   const handleExpandText = (id) => {
     if (expandedTextId === id) {
       setExpandedTextId(null);
@@ -54,10 +63,7 @@ export default function BasicTable(props) {
               <b></b>
             </TableCell>
             <TableCell align="center">
-              <b>ID</b>
-            </TableCell>
-            <TableCell align="center">
-              <b>Text</b>
+              <b>Source</b>
             </TableCell>
             <TableCell align="center">
               <TableSortLabel
@@ -65,13 +71,14 @@ export default function BasicTable(props) {
                 direction={sortOrder}
                 onClick={handleSortChange("created_at")}
               >
-                <b>Timestamp</b>
+                <b>Date</b>
               </TableSortLabel>
             </TableCell>
             <TableCell align="center">
-              <b>Source</b>
+              <b>Text</b>
             </TableCell>
             
+           
             <TableCell align="center">
               <b>URL</b>
             </TableCell>
@@ -86,8 +93,9 @@ export default function BasicTable(props) {
               <TableCell component="th" scope="row" align="center">
                 {props.startIndex + index} {/* Use startIndex to continue serial numbers */}
               </TableCell>
-              <TableCell align="center">{row.id}</TableCell>
-              <TableCell align="center">
+              <TableCell align="center">{row.data_source}</TableCell>
+              <TableCell align="center">{formatDate(row.created_at)}</TableCell>       
+              <TableCell align="left">
                 {row.data_source === "Medium" || row.data_source === "CNN" ? (
                   <Link to={`/article/${row.id}`}
                     style={{ background: "none", color: "black", border: "none", cursor: "pointer", textDecoration: "none" }}
@@ -112,8 +120,8 @@ export default function BasicTable(props) {
                   </>
                 )}
               </TableCell>
-              <TableCell align="center">{row.created_at}</TableCell>
-              <TableCell align="center">{row.data_source}</TableCell>
+            
+              
               <TableCell align="center">
                 <a href={row.url} style={{ color: "#1a6a98", marginBottom: "10px" }}>click here</a>
               </TableCell>

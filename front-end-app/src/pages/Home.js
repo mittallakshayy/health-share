@@ -154,7 +154,7 @@ const menuStyles = {
   };
   
   return  (
-    <div className="m-3 mb-5">
+    <div className="m-3">
       <div
         style={{
           display: "flex",
@@ -295,7 +295,7 @@ const menuStyles = {
         </div>
       </div>
 
-      <div style={{ paddingTop: "22px" }}>
+      <div style={{ paddingTop: "2px" }}>
       <DisplayTable data={data} startIndex={(currentPage - 1) * resultsPerPage + 1} />
       <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
       <button
