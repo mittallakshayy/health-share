@@ -31,19 +31,26 @@ router.get("/api/sortbysource", async (req, res, next) => {
     const limit = 50;
     const page = parseInt(req.query.page) || 1; // Default to page 1 if no page param
     const offset = (page - 1) * limit;
-    const source = req.query.source;
-    if (!source) {
-      return res.status(400).send("Source parameter is required.");
+    const sources = req.query.source; // Get the source parameter
+    if (!sources) {
+      return res.status(400).json({ error: "Source parameter is required." }); // Change this to return JSON
+  }
+  
+    const sourceArray = sources.split(',').filter(Boolean);
+    
+    if (sourceArray.length === 0) {
+      return res.status(400).send("At least one valid source must be provided.");
     }
-    // Query for the data based on source and paginated
-    const result = await db.query(
-      "SELECT * FROM rawdata WHERE data_source = $1 ORDER BY id ASC LIMIT $2 OFFSET $3",
-      [source, limit, offset]
-    );
-    const totalCountResult = await db.query(
-      "SELECT COUNT(*) FROM rawdata WHERE data_source = $1",
-      [source]
-    );
+    const sourcePlaceholders = sourceArray.map((_, index) => `$${index + 1}`).join(', ');
+    const dataQuery = `SELECT * FROM rawdata WHERE data_source IN (${sourcePlaceholders}) ORDER BY id ASC LIMIT $${sourceArray.length + 1} OFFSET $${sourceArray.length + 2}`;
+    
+    // Counting total records
+    const countQuery = `SELECT COUNT(*) FROM rawdata WHERE data_source IN (${sourcePlaceholders})`;
+
+    const params = [...sourceArray, limit, offset];
+    const result = await db.query(dataQuery, params);
+    const totalCountResult = await db.query(countQuery, sourceArray);
+
     const totalRecords = parseInt(totalCountResult.rows[0].count); // Parse to an integer
     res.status(200).json({
       data: result.rows,
