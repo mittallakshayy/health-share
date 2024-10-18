@@ -1,24 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Menu, MenuItem } from "@mui/material";
-import { utils, writeFile } from "xlsx";
 import LineChart from "../components/LineChart";
 import API_URL from "../apis/api";
 
 function Analytics() {
-  const [data, setData] = useState([]);
   const [twitterData, setTwitterData] = useState([]);
-  const fetchData = useCallback(async () => {
-    try {
-      const response = await fetch(API_URL + "/healthshare/api/alldata", {
-        mode: "cors",
-      });
-      const result = await response.json();
-      console.log(result);
-      setData(result);
-    } catch (error) {
-      console.error("There was a problem with the fetch operation:", error);
-    }
-  }, []);
   const fetchTwitterData = useCallback(async () => {
     try {
       const response = await fetch(
@@ -35,9 +20,8 @@ function Analytics() {
   }, []);
 
   useEffect(() => {
-    fetchData();
     fetchTwitterData();
-  }, [fetchData, fetchTwitterData]);
+  }, [fetchTwitterData]);
   return (
     <div style={containerStyle}>
       <LineChart data={twitterData} />

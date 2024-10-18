@@ -61,6 +61,7 @@ const menuStyles = {
         mode: "cors",
       });
       const result = await response.json();
+
       setData(result.data);
       setTotalRecords(result.totalRecords);
       setCurrentPage(page);
@@ -79,17 +80,14 @@ const menuStyles = {
   
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   const handleQuery = async (query) => {
     try {
-      const url = new URL(API_URL + "/healthshare/api/querydata");
-      url.searchParams.append("query", query);
-      const response = await fetch(url, {
+      const response = await fetch(API_URL + `/healthshare/api/querydata?query=${query}`, {
         mode: "cors",
       });
       const result = await response.json();
-      console.log(result);
       setData(result);
     } catch (error) {
       console.error("There was a problem with the fetch operation:", error);
@@ -116,6 +114,7 @@ const menuStyles = {
       const pages = Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i);
       setPageNumbers(pages);
       handleMenuClose(); // Close the sort menu
+
     } catch (error) {
       console.error("There was a problem with the fetch operation:", error);
     }
