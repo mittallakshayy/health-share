@@ -4,13 +4,14 @@ import HomeIcon from "@mui/icons-material/Home";
 import { Link } from 'react-router-dom';
 import DownloadIcon from "@mui/icons-material/Download";
 import { Menu, MenuItem } from "@mui/material";
+import Checkbox from '@mui/material/Checkbox';
 import { utils, writeFile } from "xlsx";
 import SearchIcon from "@mui/icons-material/Search";
 import API_URL from "../apis/api";
 
 function Home() {
   const [data, setData] = useState([]);
-  const [currentSource, setCurrentSource] = useState("All");
+  const [currentSource, setCurrentSource] = useState([]);
   const resultsPerPage = 50;
   const [totalRecords, setTotalRecords] = useState(0); // State for total records
   const [pageNumbers, setPageNumbers] = useState([]); // State for page numbers display
@@ -18,7 +19,9 @@ function Home() {
   const [anchorEl, setAnchorEl] = useState(null); // Anchor element for the menu
   const [exportMenuAnchorEl, setExportMenuAnchorEl] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-
+  useEffect(() => {
+    console.log('Current Source Updated:', currentSource);
+}, [currentSource]);
 const menuStyles = {
     paper: {
       backgroundColor: "#99ceed",
@@ -65,7 +68,6 @@ const menuStyles = {
       setData(result.data);
       setTotalRecords(result.totalRecords);
       setCurrentPage(page);
-      
       // Calculate page numbers for pagination
       const totalPages = Math.ceil(result.totalRecords / resultsPerPage);
       const numberOfPages = 6; // Max pages to show
@@ -93,32 +95,34 @@ const menuStyles = {
       console.error("There was a problem with the fetch operation:", error);
     }
   };
-
-  const handleSortBy = useCallback(async (source, page = 1) => {
+  const handleSortBy = useCallback(async (sources, page = 1) => {
     try {
-      const response = await fetch(API_URL + `/healthshare/api/sortbysource?source=${source}&page=${page}`, {
-        mode: "cors",
-      });
-      const result = await response.json();
-      // Update the state with the new sorted data
-      setData(result.data);
-      setTotalRecords(result.totalRecords);
-      setCurrentPage(page);
-      setCurrentSource(source); // Set the current source
-      // Calculate page numbers for pagination
-      const totalPages = Math.ceil(result.totalRecords / resultsPerPage);
-      const numberOfPages = 6; // Max pages to show
-      const startPage = Math.max(1, page - Math.floor(numberOfPages / 2));
-      const endPage = Math.min(totalPages, startPage + numberOfPages - 1);
-      // Create an array of page numbers
-      const pages = Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i);
-      setPageNumbers(pages);
-      handleMenuClose(); // Close the sort menu
-
+        const response = await fetch(API_URL + `/healthshare/api/sortbysource?source=${sources}&page=${page}`, {
+            mode: "cors",
+        });
+        if (!response.ok) {
+            const errorText = await response.text(); // Read response as text
+            console.error("Error response:", errorText); // Log the error response
+            throw new Error("Failed to fetch data");
+        }
+        const result = await response.json();
+        setData(result.data);
+        setTotalRecords(result.totalRecords);
+        setCurrentPage(page);
+        // Calculate page numbers for pagination
+        const totalPages = Math.ceil(result.totalRecords / resultsPerPage);
+        const numberOfPages = 6; // Max pages to show
+        const startPage = Math.max(1, page - Math.floor(numberOfPages / 2));
+        const endPage = Math.min(totalPages, startPage + numberOfPages - 1);
+        // Create an array of page numbers
+        const pages = Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i);
+        setPageNumbers(pages);
+        handleMenuClose(); 
     } catch (error) {
-      console.error("There was a problem with the fetch operation:", error);
+        console.error("There was a problem with the fetch operation:", error);
     }
-  }, []);
+}, []);
+
   
   const handleExportCurrentPage = () => {
     const headings = [["Id", "Text", "Created at", "Source"]];
@@ -131,14 +135,15 @@ const menuStyles = {
     handleExportMenuClose();
   };
 
-  const handleExportAllResults = async (source) => {
+  const handleExportAllResults = async () => { // Removed source parameter
     try {
-      const response = await fetch(`${API_URL}/healthshare/api/allresults?source=${source}`, {
+      const sources = currentSource.join(','); // Join currentSource array into a single string for the request
+      const response = await fetch(`${API_URL}/healthshare/api/allresults?source=${sources}`, {
         mode: "cors",
       });
       const result = await response.json();
       const allData = result.data;
-      if (!allData.length) return;
+      if (!allData.length) return; // Check if there's any data to download
       const headings = [["Id", "Text", "Created at", "Source"]];
       const wb = utils.book_new();
       const ws = utils.json_to_sheet([]);
@@ -170,7 +175,7 @@ const menuStyles = {
             style={{ marginRight: "10px", fontSize: "2rem", cursor: "pointer", color: "white" }}
             onClick={() => {
               fetchData();
-              setCurrentSource("All");
+              setCurrentSource([]);
               handleClearSearch();
             }}
           />
@@ -252,7 +257,7 @@ const menuStyles = {
           onMouseLeave={(e) => e.target.style.backgroundColor = "inherit"}
           onClick={handleMenuOpen}
         >
-          Sort By
+          Filter
         </button>
 
         <DownloadIcon
@@ -266,31 +271,50 @@ const menuStyles = {
               <MenuItem sx={menuStyles.menuItem} onClick={handleExportCurrentPage}>
                 Download Current Page
               </MenuItem>
-              <MenuItem sx={menuStyles.menuItem} onClick={() => handleExportAllResults(currentSource)}>
-                Download All Results
+              <MenuItem sx={menuStyles.menuItem} onClick={handleExportAllResults}>
+              Download All Results
               </MenuItem>
             </Menu>
-          <Menu
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={handleMenuClose}
-            PaperProps={{ sx: menuStyles.paper }}>
-            <MenuItem sx={menuStyles.menuItem} onClick={() => { fetchData(); handleMenuClose(); setCurrentSource(null); }}>
-              All
+            <Menu
+    anchorEl={anchorEl}
+    open={Boolean(anchorEl)}
+    onClose={handleMenuClose}
+    PaperProps={{ sx: menuStyles.paper }}
+>
+{["Twitter", "Facebook", "Medium", "CNN"].map((source) => (
+        <MenuItem key={source} sx={menuStyles.menuItem}>
+        <Checkbox
+          size="small"
+          sx={{
+              marginRight: '9px',
+              color: 'white',
+              '&.Mui-checked': {
+                  color: 'white',
+              }
+          }}
+          checked={currentSource.includes(source)}
+          onChange={() => {
+            // Determine if current source is selected
+            const isSourceSelected = currentSource.includes(source);
+            // Create updated sources array
+            const updatedSources = isSourceSelected 
+                ? currentSource.filter((s) => s !== source) // Remove the source
+                : [...currentSource, source]; // Add the source
+                setCurrentSource(updatedSources);
+                console.log(currentSource);
+
+            // Immediately handle data fetching or sorting based on updatedSources
+            if (updatedSources.length === 0) {
+                fetchData(); // Fetch all data if no sources are selected
+            } else {
+                handleSortBy(updatedSources.join(','), 1); // Sort by updated sources
+            }
+        }} 
+    />
+                {source}
             </MenuItem>
-            <MenuItem sx={menuStyles.menuItem} onClick={() => { handleSortBy("Twitter"); handleMenuClose(); }}>
-              Twitter
-            </MenuItem>
-            <MenuItem sx={menuStyles.menuItem} onClick={() => { handleSortBy("Facebook"); handleMenuClose(); }}>
-              Facebook
-            </MenuItem>
-            <MenuItem sx={menuStyles.menuItem} onClick={() => { handleSortBy("Medium"); handleMenuClose(); }}>
-              Medium
-            </MenuItem>
-            <MenuItem sx={menuStyles.menuItem} onClick={() => { handleSortBy("CNN"); handleMenuClose(); }}>
-              CNN
-            </MenuItem>
-          </Menu>
+        ))}
+        </Menu>
         </div>
       </div>
 
@@ -300,11 +324,11 @@ const menuStyles = {
       <button
   disabled={currentPage === 1}
   onClick={() => {
-    // Check if currentSource is "All" explicitly
-    if (currentSource === "All") {
-      fetchData(currentPage - 1); // Call fetchData for the previous page
+    // Check if currentSource is empty
+    if (currentSource.length === 0) {
+      fetchData(); // Fetch all data for the previous page
     } else {
-      handleSortBy(currentSource, currentPage - 1); // Call handleSortBy for other sources
+      handleSortBy(currentSource.join(','), currentPage - 1); // Sort by current sources for previous page
     }
   }}
   style={{ marginRight: '10px', border: '1px solid black' }}
@@ -316,11 +340,11 @@ const menuStyles = {
   <button
     key={page}
     onClick={() => {
-      // Again check if currentSource is "All"
-      if (currentSource === "All") {
-        fetchData(page); // Fetch data for this specific page when source is "All"
+      // Check if currentSource is empty
+      if (currentSource.length === 0) {
+        fetchData(page); // Fetch data for this specific page for all results
       } else {
-        handleSortBy(currentSource, page); // Sort by current source for this specific page
+        handleSortBy(currentSource.join(','), page); // Sort by current sources for this specific page
       }
     }}
     style={{
@@ -339,11 +363,10 @@ const menuStyles = {
 <button
   disabled={currentPage === Math.ceil(totalRecords / resultsPerPage)}
   onClick={() => {
-    // Check if currentSource is "All"
-    if (currentSource === "All") {
-      fetchData(currentPage + 1); // Fetch next page data when the source is "All"
+    if (currentSource.length === 0) {
+      fetchData(); // Fetch all data for the next page
     } else {
-      handleSortBy(currentSource, currentPage + 1); // Use handleSortBy for other sources
+      handleSortBy(currentSource.join(','), currentPage + 1); // Sort by current sources for next page
     }
   }}
   style={{ marginLeft: '10px', border: '1px solid black' }}

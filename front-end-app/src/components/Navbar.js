@@ -18,7 +18,7 @@ const Navbar = () => {
         <a href="/visualize">Home</a>
         <a href="/visualize">Data</a>
         <a href="/analyze">Analytics</a>
-        <a href="">About</a>
+        <a href="/">About</a>
         <a href="">Contact</a>
 
         {/* <button className="primary-button">Get Started</button> */}
