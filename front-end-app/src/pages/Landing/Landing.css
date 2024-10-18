@@ -11,19 +11,22 @@ body {
 .home-banner-container {
   position: relative;
   display: flex;
+  flex-direction: row;
   padding-top: 3rem;
-  margin-right: 10%;
+  justify-content: center;
+  /* margin-right: 10%; */
   margin-top: -2rem;
 }
 
 .home-image-section {
-  max-width: 600px; /* Image section width */
-  flex: 1; /* Flex grow */
+  width: 600px; 
+  flex: 1; 
+  margin-right: 2.5rem;
 }
 
 .home-text-section {
   margin-top: -7rem;
-  margin-left: 5rem;
+  margin-left: 2.5rem;
   flex: 1; /* Flex grow */
   display: flex;
   flex-direction: column;

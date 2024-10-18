@@ -14,7 +14,7 @@ const Landing = () => {
     navigate("/visualize");
   };
   return (
-    <div className="home-container" style={{ marginBottom: "12rem" }}>
+    <div className="home-container" >
       <div className="home-banner-container">
         <div className="home-text-section">
           <h1 className="primary-heading">
