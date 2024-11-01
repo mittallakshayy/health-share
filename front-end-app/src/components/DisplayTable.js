@@ -1,7 +1,6 @@
 import * as React from "react";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
-import { Button } from "@mui/material";
 import { Link } from "react-router-dom";
 import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
@@ -102,6 +101,10 @@ export default function BasicTable(props) {
                     style={{ background: "none", color: "black", border: "none", cursor: "pointer", textDecoration: "none" }}
                     onMouseOver={(e) => e.target.style.color = "#2598da"}
                     onMouseOut={(e) => e.target.style.color = "black"}  
+                    onClick={(e) => {
+                      e.preventDefault();
+                      window.open(`/article/${row.id}`, "_blank", "noopener,noreferrer");
+                    }}
                   >
                     {truncateText(row.text, 100)}
                   </Link>
@@ -124,7 +127,8 @@ export default function BasicTable(props) {
             
               
               <TableCell align="center">
-                <a href={row.url} style={{ color: "#1a6a98", marginBottom: "10px" }}>click here</a>
+                <a href={row.url} style={{ color: "#1a6a98", marginBottom: "10px" }} target="_blank"
+  rel="noopener noreferrer">click here</a>
               </TableCell>
             </TableRow>
           ))}

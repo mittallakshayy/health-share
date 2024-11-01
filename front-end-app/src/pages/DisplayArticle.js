@@ -47,6 +47,8 @@ export default function Article() {
           Click here to be redirected to the article -{" "}
         </h6>
         <a
+          target="_blank" 
+          rel="noopener noreferrer"
           href={data && data.url}
           style={{ color: "#1a6a98", marginBottom: "10px", display: "block" }}
         >
