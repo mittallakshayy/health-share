@@ -19,12 +19,12 @@ export default function BasicTable(props) {
     if (text.length <= maxLength) {
       return text;
     } else {
-      return text.substring(0, maxLength) + "..."; // Truncate text and add ellipsis
+      return text.substring(0, maxLength) + "..."; 
     }
   };
   const formatDate = (dateString) => {
-    if (!dateString) { // Check for empty or undefined date
-      return ''; // Return empty string if no valid date
+    if (!dateString) {
+      return '';
     }
 
     const date = new Date(dateString);
@@ -127,8 +127,16 @@ export default function BasicTable(props) {
             
               
               <TableCell align="center">
-                <a href={row.url} style={{ color: "#1a6a98", marginBottom: "10px" }} target="_blank"
-  rel="noopener noreferrer">click here</a>
+              {(row.data_source === "Medium" || row.data_source === "CNN") && (
+              <a
+                href={row.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: "#1a6a98", marginBottom: "10px" }}
+              >
+              click here
+              </a>
+)}
               </TableCell>
             </TableRow>
           ))}
