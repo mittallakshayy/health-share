@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import DisplayTable from "../components/DisplayTable";
 import HomeIcon from "@mui/icons-material/Home";
 import { Link } from 'react-router-dom';
-import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft"; // Import Back Arrow Icon
+import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft"; 
 import DownloadIcon from "@mui/icons-material/Download";
 import { Menu, MenuItem } from "@mui/material";
 import Checkbox from '@mui/material/Checkbox';
@@ -14,10 +14,10 @@ function Home() {
   const [data, setData] = useState([]);
   const [currentSource, setCurrentSource] = useState([]);
   const resultsPerPage = 50;
-  const [totalRecords, setTotalRecords] = useState(0); // State for total records
-  const [pageNumbers, setPageNumbers] = useState([]); // State for page numbers display
+  const [totalRecords, setTotalRecords] = useState(0); 
+  const [pageNumbers, setPageNumbers] = useState([]); 
   const [queryString, setQueryString] = useState("");
-  const [anchorEl, setAnchorEl] = useState(null); // Anchor element for the menu
+  const [anchorEl, setAnchorEl] = useState(null); 
   const [exportMenuAnchorEl, setExportMenuAnchorEl] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   useEffect(() => {
@@ -58,7 +58,7 @@ const menuStyles = {
     setQueryString("");
   };
 
-  //this fetches data at each page number
+
   const fetchData = useCallback(async (page = 1) => {
     try {
       const response = await fetch(API_URL + `/healthshare/api/alldata?page=${page}`, {
@@ -69,12 +69,12 @@ const menuStyles = {
       setData(result.data);
       setTotalRecords(result.totalRecords);
       setCurrentPage(page);
-      // Calculate page numbers for pagination
+      
       const totalPages = Math.ceil(result.totalRecords / resultsPerPage);
-      const numberOfPages = 6; // Max pages to show
+      const numberOfPages = 6;
       const startPage = Math.max(1, page - Math.floor(numberOfPages / 2));
       const endPage = Math.min(totalPages, startPage + numberOfPages - 1);
-      // Create an array of page numbers
+     
       const pages = Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i);
       setPageNumbers(pages);
     } catch (error) {
@@ -102,20 +102,18 @@ const menuStyles = {
             mode: "cors",
         });
         if (!response.ok) {
-            const errorText = await response.text(); // Read response as text
-            console.error("Error response:", errorText); // Log the error response
+            const errorText = await response.text(); 
+            console.error("Error response:", errorText); 
             throw new Error("Failed to fetch data");
         }
         const result = await response.json();
         setData(result.data);
         setTotalRecords(result.totalRecords);
         setCurrentPage(page);
-        // Calculate page numbers for pagination
         const totalPages = Math.ceil(result.totalRecords / resultsPerPage);
-        const numberOfPages = 6; // Max pages to show
+        const numberOfPages = 6; 
         const startPage = Math.max(1, page - Math.floor(numberOfPages / 2));
         const endPage = Math.min(totalPages, startPage + numberOfPages - 1);
-        // Create an array of page numbers
         const pages = Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i);
         setPageNumbers(pages);
         handleMenuClose(); 
@@ -136,15 +134,15 @@ const menuStyles = {
     handleExportMenuClose();
   };
 
-  const handleExportAllResults = async () => { // Removed source parameter
+  const handleExportAllResults = async () => { 
     try {
-      const sources = currentSource.join(','); // Join currentSource array into a single string for the request
+      const sources = currentSource.join(','); 
       const response = await fetch(`${API_URL}/healthshare/api/allresults?source=${sources}`, {
         mode: "cors",
       });
       const result = await response.json();
       const allData = result.data;
-      if (!allData.length) return; // Check if there's any data to download
+      if (!allData.length) return; 
       const headings = [["Id", "Text", "Created at", "Source"]];
       const wb = utils.book_new();
       const ws = utils.json_to_sheet([]);
@@ -174,11 +172,11 @@ const menuStyles = {
         <button
         disabled={currentPage === 1}
         onClick={() => {
-          // Check if currentSource is empty
+        
           if (currentSource.length === 0) {
-            fetchData(currentPage - 1); // Call your previous page fetch logic
+            fetchData(currentPage - 1); 
           } else {
-            handleSortBy(currentSource.join(','), currentPage - 1); // Previous page for sorted results
+            handleSortBy(currentSource.join(','), currentPage - 1); 
           }
         }}
         style={{
@@ -215,8 +213,8 @@ const menuStyles = {
           outline: 'none',
           fontSize: "13px",
           boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-          backgroundColor: queryString ? "#f7f7f7" : "white", // Change color if text is present
-          transition: "background-color 0.1s", // Smooth transition for color change
+          backgroundColor: queryString ? "#f7f7f7" : "white", 
+          transition: "background-color 0.1s", 
         }}
         placeholder="Search here"
         aria-label="Search"
@@ -231,8 +229,8 @@ const menuStyles = {
           transform: "translateY(-50%)",
           fontSize: "1.5rem",
           cursor: "pointer",
-          color:"#5894b8", // Change icon color when clicked
-          transition: "color 0.3s", // Smooth transition for color change
+          color:"#5894b8", 
+          transition: "color 0.3s", 
         }}
         onClick={() => queryString && handleQuery(queryString)} />
     </div>
@@ -315,20 +313,20 @@ const menuStyles = {
           }}
           checked={currentSource.includes(source)}
           onChange={() => {
-            // Determine if current source is selected
+         
             const isSourceSelected = currentSource.includes(source);
-            // Create updated sources array
+          
             const updatedSources = isSourceSelected 
-                ? currentSource.filter((s) => s !== source) // Remove the source
-                : [...currentSource, source]; // Add the source
+                ? currentSource.filter((s) => s !== source) 
+                : [...currentSource, source]; 
                 setCurrentSource(updatedSources);
                 console.log(currentSource);
 
-            // Immediately handle data fetching or sorting based on updatedSources
+            
             if (updatedSources.length === 0) {
-                fetchData(); // Fetch all data if no sources are selected
+                fetchData(); 
             } else {
-                handleSortBy(updatedSources.join(','), 1); // Sort by updated sources
+                handleSortBy(updatedSources.join(','), 1); 
             }
         }} 
     />
@@ -342,60 +340,134 @@ const menuStyles = {
       <div style={{ paddingTop: "2px" }}>
       <DisplayTable data={data} startIndex={(currentPage - 1) * resultsPerPage + 1} />
       <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
-      <button
-  disabled={currentPage === 1}
-  onClick={() => {
-    // Check if currentSource is empty
-    if (currentSource.length === 0) {
-      fetchData(); // Fetch all data for the previous page
-    } else {
-      handleSortBy(currentSource.join(','), currentPage - 1); // Sort by current sources for previous page
-    }
-  }}
-  style={{ marginRight: '10px', border: '1px solid black' }}
->
-  &#60; {/* Previous arrow */}
-</button>
-
-{pageNumbers.map((page) => (
+  {/* First Page Button */}
   <button
-    key={page}
+    disabled={currentPage === 1}
     onClick={() => {
-      // Check if currentSource is empty
       if (currentSource.length === 0) {
-        fetchData(page); // Fetch data for this specific page for all results
+        fetchData(1); // Navigate to the first page
       } else {
-        handleSortBy(currentSource.join(','), page); // Sort by current sources for this specific page
+        handleSortBy(currentSource.join(','), 1); // Navigate to the first page with sorting
       }
     }}
     style={{
-      margin: '0 5px',
-      fontWeight: currentPage === page ? 'bold' : 'normal',
-      backgroundColor: currentPage === page ? '#80bddc' : 'transparent',
-      border: '1px solid #ccc',
-      padding: '5px 10px',
-      cursor: 'pointer',
+      marginRight: '10px',
+      border: '1px solid #58afe2',
+      color: currentPage === 1 ? '#aaa' : '#58afe2',
+      backgroundColor: currentPage === 1 ? '#f0f0f0' : '#fff',
+      padding: '8px 12px',
+      borderRadius: '4px',
+      cursor: currentPage === 1 ? 'default' : 'pointer',
+      transition: 'background-color 0.3s, color 0.3s',
     }}
   >
-    {page}
+    &laquo; First
   </button>
-))}
 
-<button
-  disabled={currentPage === Math.ceil(totalRecords / resultsPerPage)}
-  onClick={() => {
-    if (currentSource.length === 0) {
-      fetchData(); // Fetch all data for the next page
-    } else {
-      handleSortBy(currentSource.join(','), currentPage + 1); // Sort by current sources for next page
-    }
-  }}
-  style={{ marginLeft: '10px', border: '1px solid black' }}
->
-  &#62; {/* Next arrow */}
-</button>
-      </div>
+  {/* Previous Page Button */}
+  <button
+    disabled={currentPage === 1}
+    onClick={() => {
+      if (currentSource.length === 0) {
+        fetchData(currentPage - 1); // Navigate to the previous page
+      } else {
+        handleSortBy(currentSource.join(','), currentPage - 1); // Navigate to the previous page with sorting
+      }
+    }}
+    style={{
+      marginRight: '10px',
+      border: '1px solid #58afe2',
+      color: currentPage === 1 ? '#aaa' : '#58afe2',
+      backgroundColor: currentPage === 1 ? '#f0f0f0' : '#fff',
+      padding: '8px 12px',
+      borderRadius: '4px',
+      cursor: currentPage === 1 ? 'default' : 'pointer',
+      transition: 'background-color 0.3s, color 0.3s',
+    }}
+  >
+    &lsaquo;
+  </button>
+
+  {/* Page Number Buttons */}
+  {pageNumbers.map((page) => (
+    <button
+      key={page}
+      onClick={() => {
+        if (currentSource.length === 0) {
+          fetchData(page); // Fetch data for the selected page
+        } else {
+          handleSortBy(currentSource.join(','), page); // Fetch sorted data for the selected page
+        }
+      }}
+      style={{
+        margin: '0 5px',
+        fontWeight: currentPage === page ? 'bold' : 'normal',
+        color: currentPage === page ? '#fff' : '#58afe2',
+        backgroundColor: currentPage === page ? '#58afe2' : '#fff',
+        border: '1px solid #58afe2',
+        padding: '8px 12px',
+        borderRadius: '4px',
+        cursor: 'pointer',
+        transition: 'background-color 0.3s, color 0.3s',
+      }}
+    >
+      {page}
+    </button>
+  ))}
+
+  {/* Next Page Button */}
+  <button
+    disabled={currentPage === Math.ceil(totalRecords / resultsPerPage)}
+    onClick={() => {
+      if (currentSource.length === 0) {
+        fetchData(currentPage + 1); // Navigate to the next page
+      } else {
+        handleSortBy(currentSource.join(','), currentPage + 1); // Navigate to the next page with sorting
+      }
+    }}
+    style={{
+      marginLeft: '10px',
+      border: '1px solid #58afe2',
+      color: currentPage === Math.ceil(totalRecords / resultsPerPage) ? '#aaa' : '#58afe2',
+      backgroundColor: currentPage === Math.ceil(totalRecords / resultsPerPage) ? '#f0f0f0' : '#fff',
+      padding: '8px 12px',
+      borderRadius: '4px',
+      cursor: currentPage === Math.ceil(totalRecords / resultsPerPage) ? 'default' : 'pointer',
+      transition: 'background-color 0.3s, color 0.3s',
+    }}
+  >
+    &rsaquo;
+  </button>
+
+  {/* Last Page Button */}
+  <button
+    disabled={currentPage === Math.ceil(totalRecords / resultsPerPage)}
+    onClick={() => {
+      const lastPage = Math.ceil(totalRecords / resultsPerPage);
+      if (currentSource.length === 0) {
+        fetchData(lastPage); // Navigate to the last page
+      } else {
+        handleSortBy(currentSource.join(','), lastPage); // Navigate to the last page with sorting
+      }
+    }}
+    style={{
+      marginLeft: '10px',
+      border: '1px solid #58afe2',
+      color: currentPage === Math.ceil(totalRecords / resultsPerPage) ? '#aaa' : '#58afe2',
+      backgroundColor: currentPage === Math.ceil(totalRecords / resultsPerPage) ? '#f0f0f0' : '#fff',
+      padding: '8px 12px',
+      borderRadius: '4px',
+      cursor: currentPage === Math.ceil(totalRecords / resultsPerPage) ? 'default' : 'pointer',
+      transition: 'background-color 0.3s, color 0.3s',
+    }}
+  >
+    Last &raquo;
+  </button>
 </div>
+
+
+
+      </div>
 
 
     </div>
