@@ -3,6 +3,7 @@ import DisplayTable from "../components/DisplayTable";
 import HomeIcon from "@mui/icons-material/Home";
 import { Link } from 'react-router-dom';
 import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft"; 
+import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import DownloadIcon from "@mui/icons-material/Download";
 import { Menu, MenuItem } from "@mui/material";
 import Checkbox from '@mui/material/Checkbox';
@@ -85,17 +86,31 @@ const menuStyles = {
     fetchData();
   }, [fetchData]);
 
-  const handleQuery = async (query) => {
+  const handleQuery = async (query, page = 1,sourceArray = currentSource) => {
     try {
-      const response = await fetch(API_URL + `/healthshare/api/querydata?query=${query}`, {
-        mode: "cors",
-      });
+      const sources = sourceArray.join(','); // Combine selected sources into a comma-separated string
+      const response = await fetch(
+        `${API_URL}/healthshare/api/querydata?query=${query}&source=${sources}&page=${page}`,
+        { mode: "cors" }
+      );
       const result = await response.json();
-      setData(result);
+      console.log(response);
+      setData(result.data);
+      setTotalRecords(result.totalRecords); // Update total records for pagination
+      setCurrentPage(page);
+  
+      // Calculate page numbers for pagination
+      const totalPages = Math.ceil(result.totalRecords / resultsPerPage);
+      const numberOfPages = 6;
+      const startPage = Math.max(1, page - Math.floor(numberOfPages / 2));
+      const endPage = Math.min(totalPages, startPage + numberOfPages - 1);
+      const pages = Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i);
+      setPageNumbers(pages);
     } catch (error) {
       console.error("There was a problem with the fetch operation:", error);
     }
   };
+  
   const handleSortBy = useCallback(async (sources, page = 1) => {
     try {
         const response = await fetch(API_URL + `/healthshare/api/sortbysource?source=${sources}&page=${page}`, {
@@ -122,34 +137,42 @@ const menuStyles = {
     }
 }, []);
 
-  
-  const handleExportCurrentPage = () => {
-    const headings = [["Id", "Text", "Created at", "Source"]];
-    const wb = utils.book_new();
-    const ws = utils.json_to_sheet([]);
-    utils.sheet_add_aoa(ws, headings);
-    utils.sheet_add_json(ws, data, { origin: "A2", skipHeader: true });
-    utils.book_append_sheet(wb, ws, "Current Page");
-    writeFile(wb, "Current_Page_Data.xlsx");
-    handleExportMenuClose();
-  };
+const downloadData = (allData) =>{
+  const headings = [["Source", "Text", "Created at"]]; 
+  const wb = utils.book_new();
+  const ws = utils.json_to_sheet([]);
+  const transformedData = allData.map(row => ({
+    data_source: row.data_source,
+    text: (row.data_source === "Medium" || row.data_source === "CNN") ? row.url : row.text,
+    created_at: row.created_at
+}));
+utils.sheet_add_aoa(ws, headings);
+utils.sheet_add_json(ws, transformedData, { origin: "A2", skipHeader: true });
+utils.book_append_sheet(wb, ws, "Current Page");
+writeFile(wb, "Current_Page_Data.xlsx");
+
+}
+const handleExportCurrentPage = () => {
+  if(data.length>0)downloadData(data);
+  handleExportMenuClose();
+};
 
   const handleExportAllResults = async () => { 
     try {
-      const sources = currentSource.join(','); 
-      const response = await fetch(`${API_URL}/healthshare/api/allresults?source=${sources}`, {
-        mode: "cors",
-      });
+      const sources = currentSource.join(',');
+      let response;
+      if(queryString){
+         response = await fetch(`${API_URL}/healthshare/api/querydata/all?query=${queryString}&source=${sources}`, {
+          mode: "cors",
+        });
+      }else{
+         response = await fetch(`${API_URL}/healthshare/api/allresults?source=${sources}`, {
+          mode: "cors",
+        });
+      } 
       const result = await response.json();
       const allData = result.data;
-      if (!allData.length) return; 
-      const headings = [["Id", "Text", "Created at", "Source"]];
-      const wb = utils.book_new();
-      const ws = utils.json_to_sheet([]);
-      utils.sheet_add_aoa(ws, headings);
-      utils.sheet_add_json(ws, allData, { origin: "A2", skipHeader: true });
-      utils.book_append_sheet(wb, ws, "All Data");
-      writeFile(wb, "All_Data.xlsx");
+      if(allData.length>0)downloadData(allData);
       handleExportMenuClose();
     } catch (error) {
       console.error("There was a problem fetching all results:", error);
@@ -172,8 +195,9 @@ const menuStyles = {
         <button
         disabled={currentPage === 1}
         onClick={() => {
-        
-          if (currentSource.length === 0) {
+          if (queryString) {
+            handleQuery(queryString, currentPage - 1); 
+          } else if (currentSource.length === 0) {
             fetchData(currentPage - 1); 
           } else {
             handleSortBy(currentSource.join(','), currentPage - 1); 
@@ -188,6 +212,27 @@ const menuStyles = {
         }}
       >
           <KeyboardArrowLeft style={{ color: "#6eb9e6", fontSize: "2rem" }} />
+      </button> 
+      <button
+          disabled={currentPage === Math.ceil(totalRecords / resultsPerPage)}
+          onClick={() => {
+            if (queryString) {
+              handleQuery(queryString, currentPage + 1); 
+            } else if (currentSource.length === 0) {
+              fetchData(currentPage + 1); 
+            } else {
+              handleSortBy(currentSource.join(','), currentPage + 1); 
+            }
+          }}
+        style={{
+          marginRight: '10px',
+          borderRadius: "6px",
+          border:'none',
+          backgroundColor:'white',
+          cursor: "pointer",
+        }}
+      >
+          <KeyboardArrowRight style={{ color: "#6eb9e6", fontSize: "2rem" }} />
       </button>
         <div style={{ display: "flex", alignItems: "center" }}>
           <HomeIcon
@@ -232,7 +277,7 @@ const menuStyles = {
           color:"#5894b8", 
           transition: "color 0.3s", 
         }}
-        onClick={() => queryString && handleQuery(queryString)} />
+        onClick={() => queryString && handleQuery(queryString, 1)} />
     </div>
         </div>
         <div style={{ display: "flex", alignItems: "center" }}>
@@ -322,8 +367,10 @@ const menuStyles = {
                 setCurrentSource(updatedSources);
                 console.log(currentSource);
 
-            
-            if (updatedSources.length === 0) {
+            if (queryString) {
+                  handleQuery(queryString, 1, updatedSources); // Handle search pagination
+                }
+            else if (updatedSources.length === 0) {
                 fetchData(); 
             } else {
                 handleSortBy(updatedSources.join(','), 1); 
@@ -344,7 +391,9 @@ const menuStyles = {
   <button
     disabled={currentPage === 1}
     onClick={() => {
-      if (currentSource.length === 0) {
+      if (queryString) {
+        handleQuery(queryString, 1); // Handle search pagination
+      } else if (currentSource.length === 0) {
         fetchData(1); // Navigate to the first page
       } else {
         handleSortBy(currentSource.join(','), 1); // Navigate to the first page with sorting
@@ -368,7 +417,9 @@ const menuStyles = {
   <button
     disabled={currentPage === 1}
     onClick={() => {
-      if (currentSource.length === 0) {
+      if (queryString) {
+        handleQuery(queryString, currentPage - 1); // Handle search pagination
+      } else if (currentSource.length === 0) {
         fetchData(currentPage - 1); // Navigate to the previous page
       } else {
         handleSortBy(currentSource.join(','), currentPage - 1); // Navigate to the previous page with sorting
@@ -390,36 +441,39 @@ const menuStyles = {
 
   {/* Page Number Buttons */}
   {pageNumbers.map((page) => (
-    <button
-      key={page}
-      onClick={() => {
-        if (currentSource.length === 0) {
-          fetchData(page); // Fetch data for the selected page
-        } else {
-          handleSortBy(currentSource.join(','), page); // Fetch sorted data for the selected page
-        }
-      }}
-      style={{
-        margin: '0 5px',
-        fontWeight: currentPage === page ? 'bold' : 'normal',
-        color: currentPage === page ? '#fff' : '#58afe2',
-        backgroundColor: currentPage === page ? '#58afe2' : '#fff',
-        border: '1px solid #58afe2',
-        padding: '8px 12px',
-        borderRadius: '4px',
-        cursor: 'pointer',
-        transition: 'background-color 0.3s, color 0.3s',
-      }}
-    >
-      {page}
-    </button>
-  ))}
-
+  <button
+    key={page}
+    onClick={() => {
+      if (queryString) {
+        handleQuery(queryString, page); // Handle search pagination
+      } else if (currentSource.length === 0) {
+        fetchData(page); // Fetch data for the selected page
+      } else {
+        handleSortBy(currentSource.join(','), page); // Fetch sorted data for the selected page
+      }
+    }}
+    style={{
+      margin: '0 5px',
+      fontWeight: currentPage === page ? 'bold' : 'normal',
+      color: currentPage === page ? '#fff' : '#58afe2',
+      backgroundColor: currentPage === page ? '#58afe2' : '#fff',
+      border: '1px solid #58afe2',
+      padding: '8px 12px',
+      borderRadius: '4px',
+      cursor: 'pointer',
+      transition: 'background-color 0.3s, color 0.3s',
+    }}
+  >
+    {page}
+  </button>
+))}
   {/* Next Page Button */}
   <button
     disabled={currentPage === Math.ceil(totalRecords / resultsPerPage)}
     onClick={() => {
-      if (currentSource.length === 0) {
+      if (queryString) {
+        handleQuery(queryString, currentPage + 1); // Handle search pagination
+      } else if (currentSource.length === 0) {
         fetchData(currentPage + 1); // Navigate to the next page
       } else {
         handleSortBy(currentSource.join(','), currentPage + 1); // Navigate to the next page with sorting
@@ -444,7 +498,9 @@ const menuStyles = {
     disabled={currentPage === Math.ceil(totalRecords / resultsPerPage)}
     onClick={() => {
       const lastPage = Math.ceil(totalRecords / resultsPerPage);
-      if (currentSource.length === 0) {
+      if (queryString) {
+        handleQuery(queryString, lastPage); // Handle search pagination
+      } else if (currentSource.length === 0) {
         fetchData(lastPage); // Navigate to the last page
       } else {
         handleSortBy(currentSource.join(','), lastPage); // Navigate to the last page with sorting

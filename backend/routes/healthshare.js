@@ -85,18 +85,76 @@ router.get("/api/allresults", async (req, res, next) => {
 
 router.get("/api/querydata", async (req, res, next) => {
   try {
+    
     const queryString = req.query.query;
-    const result = await db.query("SELECT * FROM rawdata WHERE text LIKE $1", [
-      "%" + queryString + "%",
-    ]);
-    console.log(queryString);
-    res.status(200);
-    res.json(result.rows);
+    const limit = 50;
+    const page = parseInt(req.query.page) || 1;
+    const offset = (page - 1) * limit;
+    const sources = req.query.source ? req.query.source.split(",") : [];
+
+    // Construct SQL query based on presence of sources
+    let query = `SELECT * FROM rawdata WHERE text ILIKE $1`;
+    const params = ["%" + queryString + "%"];
+
+    if (sources.length > 0) {
+      const sourcePlaceholders = sources.map((_, index) => `$${index + 2}`).join(", ");
+      query += ` AND data_source IN (${sourcePlaceholders})`;
+      params.push(...sources);
+    }
+
+    query += ` ORDER BY id ASC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+    params.push(limit, offset);
+
+    const result = await db.query(query, params);
+
+    // Count query for pagination
+    let countQuery = `SELECT COUNT(*) FROM rawdata WHERE text ILIKE $1`;
+    const countParams = ["%" + queryString + "%"];
+    if (sources.length > 0) {
+      const sourcePlaceholders = sources.map((_, index) => `$${index + 2}`).join(", ");
+      countQuery += ` AND data_source IN (${sourcePlaceholders})`;
+      countParams.push(...sources);
+    }
+
+    const totalCountResult = await db.query(countQuery, countParams);
+    const totalRecords = parseInt(totalCountResult.rows[0].count);
+
+    res.status(200).json({
+      data: result.rows,
+      totalRecords: totalRecords,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).send("Internal Server Error");
   }
 });
+router.get("/api/querydata/all", async (req, res, next) => {
+  try {
+    const queryString = req.query.query; // Get the search query
+    const sources = req.query.source ? req.query.source.split(",") : [];
+
+    // Construct SQL query based on the presence of queryString and sources
+    let query = `SELECT * FROM rawdata WHERE text ILIKE $1`;
+    const params = [`%${queryString}%`]; // Initialize params with the query string
+
+    if (sources.length > 0) {
+      const sourcePlaceholders = sources.map((_, index) => `$${index + 2}`).join(", ");
+      query += ` AND data_source IN (${sourcePlaceholders})`;
+      params.push(...sources); // Add the sources to params
+    }
+
+    const result = await db.query(query, params);
+
+    res.status(200).json({
+      data: result.rows,
+      totalRecords: result.rowCount, // Total records returned
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
 router.get("/api/advancedquerydata", async (req, res, next) => {
   try {
     const { 
