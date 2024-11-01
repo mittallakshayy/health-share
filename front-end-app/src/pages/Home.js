@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import DisplayTable from "../components/DisplayTable";
 import HomeIcon from "@mui/icons-material/Home";
 import { Link } from 'react-router-dom';
+import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft"; // Import Back Arrow Icon
 import DownloadIcon from "@mui/icons-material/Download";
 import { Menu, MenuItem } from "@mui/material";
 import Checkbox from '@mui/material/Checkbox';
@@ -170,6 +171,26 @@ const menuStyles = {
           boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
         }}
       >
+        <button
+        disabled={currentPage === 1}
+        onClick={() => {
+          // Check if currentSource is empty
+          if (currentSource.length === 0) {
+            fetchData(currentPage - 1); // Call your previous page fetch logic
+          } else {
+            handleSortBy(currentSource.join(','), currentPage - 1); // Previous page for sorted results
+          }
+        }}
+        style={{
+          marginRight: '10px',
+          borderRadius: "6px",
+          border:'none',
+          backgroundColor:'white',
+          cursor: "pointer",
+        }}
+      >
+          <KeyboardArrowLeft style={{ color: "#6eb9e6", fontSize: "2rem" }} />
+      </button>
         <div style={{ display: "flex", alignItems: "center" }}>
           <HomeIcon
             style={{ marginRight: "10px", fontSize: "2rem", cursor: "pointer", color: "white" }}
