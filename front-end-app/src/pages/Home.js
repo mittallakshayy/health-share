@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import DisplayTable from "../components/DisplayTable";
 import HomeIcon from "@mui/icons-material/Home";
 import { Link } from 'react-router-dom';
+import TuneIcon from '@mui/icons-material/Tune';
 import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft"; 
 import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import DownloadIcon from "@mui/icons-material/Download";
@@ -192,6 +193,16 @@ const handleExportCurrentPage = () => {
           boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
         }}
       >
+          <div style={{ display: "flex", alignItems: "center" }}>
+          <HomeIcon
+            style={{ marginRight: "10px", fontSize: "2rem", cursor: "pointer", color: "white" }}
+            onClick={() => {
+              fetchData();
+              setCurrentSource([]);
+              handleClearSearch();
+            }}
+          />
+        </div>
         <button
         disabled={currentPage === 1}
         onClick={() => {
@@ -233,25 +244,15 @@ const handleExportCurrentPage = () => {
         }}
       >
           <KeyboardArrowRight style={{ color: "#6eb9e6", fontSize: "2rem" }} />
-      </button>
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <HomeIcon
-            style={{ marginRight: "10px", fontSize: "2rem", cursor: "pointer", color: "white" }}
-            onClick={() => {
-              fetchData();
-              setCurrentSource([]);
-              handleClearSearch();
-            }}
-          />
-        </div>
+      </button>     
 
-        <div style={{ display: "flex", alignItems: "right", flex: 1, justifyContent: "right" }}>
-        <div style={{ position: "relative", width: "40%" }}>
+        <div style={{ display: "flex", alignItems: "center", flex: 1, justifyContent: "right" }}>
+        <div style={{ position: "relative", width: "100%" }}>
       <input
         type="search"
         id="query"
         style={{
-          padding: "10px 40px 10px 15px",
+          padding: "10px 30px 10px 20px",
           borderRadius: "20px",
           border: "none",
           width: "100%",
@@ -261,7 +262,7 @@ const handleExportCurrentPage = () => {
           backgroundColor: queryString ? "#f7f7f7" : "white", 
           transition: "background-color 0.1s", 
         }}
-        placeholder="Search here"
+        placeholder="enter keywords"
         aria-label="Search"
         value={queryString}
         onChange={(e) => setQueryString(e.target.value)}
@@ -299,14 +300,14 @@ const handleExportCurrentPage = () => {
             onMouseEnter={(e) => e.target.style.backgroundColor = "#99ceed"}
             onMouseLeave={(e) => e.target.style.backgroundColor = "inherit"}
           >
-            Advanced Search
+            Advanced
           </button>
         </Link>
 
-        <button
+        <TuneIcon
           style={{
             marginLeft: '10px',
-            padding: "10px",
+            fontSize:'1.6rem',
             height: "100%",
             borderRadius:'6px',
             fontWeight: 'bold',
@@ -314,15 +315,11 @@ const handleExportCurrentPage = () => {
             backgroundColor: 'inherit',
             color: "white",
             cursor: "pointer",
-            fontSize: "15px",
             transition: "background-color 0.3s",
           }}
-          onMouseEnter={(e) => e.target.style.backgroundColor = "#99ceed"}
-          onMouseLeave={(e) => e.target.style.backgroundColor = "inherit"}
           onClick={handleMenuOpen}
         >
-          Filter
-        </button>
+        </TuneIcon>
 
         <DownloadIcon
           style={{ marginLeft: "10px", fontSize: "1.8rem", cursor: "pointer", color: "white" }}
@@ -430,8 +427,8 @@ const handleExportCurrentPage = () => {
       border: '1px solid #58afe2',
       color: currentPage === 1 ? '#aaa' : '#58afe2',
       backgroundColor: currentPage === 1 ? '#f0f0f0' : '#fff',
-      padding: '8px 12px',
-      borderRadius: '4px',
+      padding: '8px 15.5px',
+      borderRadius: '11rem',
       cursor: currentPage === 1 ? 'default' : 'pointer',
       transition: 'background-color 0.3s, color 0.3s',
     }}
@@ -458,8 +455,8 @@ const handleExportCurrentPage = () => {
       color: currentPage === page ? '#fff' : '#58afe2',
       backgroundColor: currentPage === page ? '#58afe2' : '#fff',
       border: '1px solid #58afe2',
-      padding: '8px 12px',
-      borderRadius: '4px',
+      padding: '8px 15.5px',
+      borderRadius: '11rem',
       cursor: 'pointer',
       transition: 'background-color 0.3s, color 0.3s',
     }}
@@ -484,8 +481,8 @@ const handleExportCurrentPage = () => {
       border: '1px solid #58afe2',
       color: currentPage === Math.ceil(totalRecords / resultsPerPage) ? '#aaa' : '#58afe2',
       backgroundColor: currentPage === Math.ceil(totalRecords / resultsPerPage) ? '#f0f0f0' : '#fff',
-      padding: '8px 12px',
-      borderRadius: '4px',
+      padding: '8px 15.5px',
+      borderRadius: '11rem',
       cursor: currentPage === Math.ceil(totalRecords / resultsPerPage) ? 'default' : 'pointer',
       transition: 'background-color 0.3s, color 0.3s',
     }}
