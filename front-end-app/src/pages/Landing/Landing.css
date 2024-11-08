@@ -99,6 +99,73 @@ body {
   transform: scale(1.05); /* Enlarges card on hover */
 }
 
+/* About Section Heading */
+.about-section h1 {
+  color: rgb(32, 33, 36);
+  font-size: 22px; /* Use original font size for larger screens */
+  font-family: 'Zeitung', sans-serif;
+  font-weight: 700;
+  margin-right: 71rem; /* Large right margin for large screens */
+  margin-left: 2rem; /* Maintain left margin */
+  text-align: left; /* Ensure left alignment */
+}
+
+/* About Section Subheading */
+.about-section h6 {
+  margin-right: 230px; /* Original right margin for large screens */
+  margin-left: 2rem; /* Maintain left margin */
+  color: rgb(60, 64, 67);
+  padding-top: 2px;
+  text-align: left; /* Ensure left alignment */
+}
+
+/* Glimpse Section Heading */
+.glimpse-heading {
+  color: rgb(32, 33, 36);
+  font-size: 22px; /* Use original font size for larger screens */
+  padding-top: 30px; /* Keep original top padding */
+  font-family: 'Zeitung', sans-serif;
+  font-weight: 700;
+  margin-left: 2rem; /* Maintain left margin */
+}
+
+/* Glimpse Section Subheading */
+.glimpse-section h6 {
+  margin-left: 30px; /* Maintain left margin for subheading */
+  color: rgb(60, 64, 67);
+  padding-top: 2px;
+}
+
+/* Media Queries for Responsiveness */
+@media (max-width: 768px) {
+  .about-section h1,
+  .glimpse-heading {
+    font-size: 18px; /* Adjust font size slightly smaller for small screens */
+    margin-right: 0; /* Remove large right margin */
+    margin-left: 2rem; /* Maintain left margin */
+  }
+  
+  .about-section h6,
+  .glimpse-section h6 {
+    margin-right: 0; /* Clear right margin on smaller screens */
+    margin-left: 2rem; /* Maintain left margin */
+    text-align: left; /* Ensure left alignment */
+  }
+}
+
+@media (min-width: 1200px) {
+  .about-section h1,
+  .glimpse-heading {
+    font-size: 22px; /* Keep original font size for larger screens */
+    margin-right: 60rem; /* Reapply large right margin for larger screens */
+  }
+
+  .about-section h6,
+  .glimpse-section h6 {
+    margin-left: 30px; /* Apply left margin for larger viewports */
+    margin-right: 220px; /* Reapply original right margin */
+  }
+}
 .icon-container {
   background-color: rgba(255, 255, 255, 0.9); /* Slightly white background for icons */
   border-radius: 50%; /* Circle shape */

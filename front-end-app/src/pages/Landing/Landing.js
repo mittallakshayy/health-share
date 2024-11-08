@@ -86,9 +86,8 @@ const Landing = () => {
       
         {/* About Section with Circular Icons */}
         <div className="about-section">
-        <h1 style={{color:'rgb(32, 33, 36)',fontSize:'22px',fontFamily:'zeitung, sans-serif', fontWeight:'700', marginRight:'71rem'
-      }}>What is HealthShare?</h1>
-      <h6 style={{marginRight:'230px',color:'rgb(60, 64, 67)',paddingTop:'2px'}}>HealthShare offers a rich collection of stories and insights to deepen your understanding of frontline medical experiences during the COVID-19 pandemic.</h6>
+        <h1>What is HealthShare?</h1>
+      <h6>HealthShare offers a rich collection of stories and insights to deepen your understanding of frontline medical experiences during the COVID-19 pandemic.</h6>
         <h2 className="section-title"></h2>
         <div className="about-cards">
           <div className="about-card">
@@ -115,20 +114,21 @@ const Landing = () => {
           </div>
         </div>
       </div></div>
-      
-      <h1 style={{color:'rgb(32, 33, 36)',fontSize:'22px',paddingTop:'30px',fontFamily:'zeitung, sans-serif', fontWeight:'700', marginLeft:'2rem'}}>Glimpse into Frontline Stories</h1>
-      <h6 style={{marginLeft:'30px',color:'rgb(60, 64, 67)',paddingTop:'2px'}}>HealthShare offers a rich collection of stories and insights to deepen your understanding of frontline medical experiences during the COVID-19 pandemic.</h6>
-      <div className="image-carousel" ref={carouselRef}>
-  {carouselImages.map((image, index) => (
-    <img 
-      key={index} 
-      src={image} 
-      className="carousel-image" 
-      alt={`image${index + 1}`} 
-      onClick={() => window.open(carouselLinks[index], "_blank")} // Opens the link in a new tab
-    />
-  ))}
-</div>      
+      <div className="glimpse-section">
+  <h1 className="glimpse-heading">Glimpse into Frontline stories</h1>
+  <h6>HealthShare offers a rich collection of stories and insights to deepen your understanding of frontline medical experiences during the COVID-19 pandemic.</h6>
+  <div className="image-carousel" ref={carouselRef}>
+    {carouselImages.map((image, index) => (
+      <img 
+        key={index} 
+        src={image} 
+        className="carousel-image" 
+        alt={`image${index + 1}`} 
+        onClick={() => window.open(carouselLinks[index], "_blank")} // Opens the link in a new tab
+      />
+    ))}
+  </div>      
+</div>   
     </div>
   );
 };
