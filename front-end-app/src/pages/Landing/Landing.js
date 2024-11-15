@@ -2,11 +2,13 @@ import React, { useEffect, useRef } from "react";
 import ManageSearchOutlinedIcon from '@mui/icons-material/ManageSearchOutlined';
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import { useNavigate } from "react-router-dom";
+import CountUp from 'react-countup';
 import BannerImage from "../../Assets/home-banner-image.png";
 import { FiArrowRight } from "react-icons/fi";
 import PeopleIcon from '@mui/icons-material/People';
 import DevicesIcon from '@mui/icons-material/Devices';
 import HealthAndSafetyIcon from '@mui/icons-material/HealthAndSafety';
+import Team from "../../components/Team/Team"
 import "./Landing.css";
 const carouselImages = [
   require("../../Assets/img1.png"),
@@ -87,6 +89,20 @@ const Landing = () => {
           <button className="secondary-button" onClick={handleGetStartedClick}>
             Get Started <FiArrowRight />{" "}
           </button>
+          <div className="stats-flexbox">
+    <div className="stats-item">
+      <h3><CountUp start={0} duration={2} end={50} />K</h3>
+      <p>Tweets</p>
+    </div>
+    <div className="stats-item">
+      <h3><CountUp start={0} duration={2} end={15} />K</h3>
+      <p>Articles</p>
+    </div>
+    <div className="stats-item">
+      <h3><CountUp  start={0} duration={3} end={7} />K</h3>
+      <p>Posts</p>
+    </div>
+  </div>
         </div>
         <div className="home-image-section">
           <img src={BannerImage} alt="" />
@@ -128,7 +144,7 @@ const Landing = () => {
         <h6>At HealthShare, you'll find a wealth of stories and data needed to understand the challenges faced by frontline medical professionals during the pandemic.</h6>
         <div className="dataset-stats">
           <div className="dataset-item">
-            <h3>35K</h3>
+            <h3>50K</h3>
             <p>Tweets</p>
           </div>
           <div className="dataset-item">
@@ -157,6 +173,7 @@ const Landing = () => {
     ))}
   </div>      
 </div>   
+<Team></Team>
     </div>
   );
 };
