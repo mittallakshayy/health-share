@@ -27,6 +27,7 @@ export default function Article() {
       handleArticle(articleId);
     }
   }, [articleId, handleArticle]);
+
   const text = data && data.text;
   const sentences = text && text.match(/[^.!?]+[.!?]+/g);
   const third = sentences && Math.ceil(sentences.length / 3);
@@ -35,15 +36,10 @@ export default function Article() {
   const paragraph3 = sentences && sentences.slice(2 * third).join(" ");
 
   return (
-    <div style={{ padding: "27px" }}>
-      <div
-        style={{
-          padding: "10px",
-          backgroundColor: "#f6fbfd",
-          fontFamily: "serif",
-        }}
-      >
-        <h6 style={{ color: "#1a6a98", fontWeight: "bold" }}>
+    <div style={{ padding: "27px", fontFamily: "sans-serif", backgroundColor: "#f9f9f9", fontSize:'0.9rem' }}>
+      <div style={{ padding: "20px", backgroundColor: "#ffffff", borderRadius: "8px", boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)" }}>
+        
+        <h6 style={{ fontWeight: "bold" }}>
           Click here to be redirected to the article -{" "}
         </h6>
         <a
@@ -54,9 +50,10 @@ export default function Article() {
         >
           {data && data.url}
         </a>
-        <p style={{ color: "#333" }}>{paragraph1}</p>
-        <p style={{ color: "#333" }}>{paragraph2}</p>
-        <p style={{ color: "#333" }}>{paragraph3}</p>
+        
+        <p style={{ color: "#333", lineHeight: "1.6", marginBottom: "10px" }}> {paragraph1}</p>
+        <p style={{ color: "#333", lineHeight: "1.6", marginBottom: "10px" }}> {paragraph2}</p>
+        <p style={{ color: "#333", lineHeight: "1.6", marginBottom: "10px" }}> {paragraph3}</p>
       </div>
     </div>
   );

@@ -32,35 +32,45 @@ const carouselLinks = [
 const Landing = () => {
   const navigate = useNavigate();
   const carouselRef = useRef(null);
-  useEffect(() => {
-    let scrolling = true;
+  const scrollingRef = useRef(true); 
 
+  useEffect(() => {
     const scrollImages = () => {
-      if (carouselRef.current) {
+      if (carouselRef.current && scrollingRef.current) {
         const totalScrollWidth = carouselRef.current.scrollWidth;
         const clientWidth = carouselRef.current.clientWidth;
-
         // Set to a higher value for faster scrolling
-        carouselRef.current.scrollLeft += 1.6;
-
+        carouselRef.current.scrollLeft += 1.8;
         // Enhance reset logic for faster speeds
         if (carouselRef.current.scrollLeft >= totalScrollWidth - clientWidth) {
           carouselRef.current.scrollLeft = 0;
         }
-
-        if (scrolling) {
-          requestAnimationFrame(scrollImages);
-        }
+        requestAnimationFrame(scrollImages);
       }
     };
 
-    requestAnimationFrame(scrollImages);
+    scrollImages();
 
+    const refCurrent = carouselRef.current;
+    // Event listeners for mouse enter and leave
+    const handleMouseEnter = () => (scrollingRef.current = false);
+    const handleMouseLeave = () => {
+      scrollingRef.current = true;
+      requestAnimationFrame(scrollImages);
+    };
+    if (refCurrent) {
+      refCurrent.addEventListener('mouseenter', handleMouseEnter);
+      refCurrent.addEventListener('mouseleave', handleMouseLeave);
+    }
+    // Cleanup function
     return () => {
-      scrolling = false;
+      if (refCurrent) {
+        refCurrent.removeEventListener('mouseenter', handleMouseEnter);
+        refCurrent.removeEventListener('mouseleave', handleMouseLeave);
+      }
+      scrollingRef.current = true;  // Stop scrolling on unmount
     };
   }, []);
-
 
   const handleGetStartedClick = () => {
     // Redirect to home page
@@ -74,7 +84,6 @@ const Landing = () => {
           <h1 className="primary-heading">
             Trace the journey of medical professionals through the pandemic
           </h1>
-
           <button className="secondary-button" onClick={handleGetStartedClick}>
             Get Started <FiArrowRight />{" "}
           </button>
@@ -83,7 +92,7 @@ const Landing = () => {
           <img src={BannerImage} alt="" />
         </div>
       </div>
-      
+
         {/* About Section with Circular Icons */}
         <div className="about-section">
         <h1>What is HealthShare?</h1>
@@ -95,12 +104,11 @@ const Landing = () => {
             <DevicesIcon fontSize="large" className="about-icon" />
             </div>
             <p>Welcome to HealthShare! Our innovative online platform gathers and organizes the heartfelt stories shared by healthcare professionals on social media during the COVID-19 pandemic. Using advanced machine learning and data mining, we transform scattered information from various sources into a structured and accessible database, inviting everyone to explore these valuable insights.
-
 </p></div>
          
           <div className="about-card">
             <div className="icon-container">
-              <PeopleIcon fontSize="large" className="about-icon" />
+              <PeopleIcon fontSize="large"className="about-icon" />
             </div>
             <p>HealthShare is designed for everyone—health professionals, researchers, policymakers, and the curious public. We provide a unique glimpse into the experiences of healthcare workers during these challenging times. By amplifying their voices, we enhance understanding and inform better decisions that lead to improved healthcare practices.
 
@@ -114,6 +122,26 @@ const Landing = () => {
           </div>
         </div>
       </div></div>
+        
+        <div className="dataset-overview-section">
+        <h1>Dataset Overview</h1>
+        <h6>At HealthShare, you'll find a wealth of stories and data needed to understand the challenges faced by frontline medical professionals during the pandemic.</h6>
+        <div className="dataset-stats">
+          <div className="dataset-item">
+            <h3>35K</h3>
+            <p>Tweets</p>
+          </div>
+          <div className="dataset-item">
+            <h3>15k</h3>
+            <p>Published Articles</p>
+          </div>
+          <div className="dataset-item">
+            <h3>6,900</h3>
+            <p>Facebook</p>
+          </div>
+        </div>
+      </div>
+
       <div className="glimpse-section">
   <h1 className="glimpse-heading">Glimpse into Frontline stories</h1>
   <h6>HealthShare offers a rich collection of stories and insights to deepen your understanding of frontline medical experiences during the COVID-19 pandemic.</h6>

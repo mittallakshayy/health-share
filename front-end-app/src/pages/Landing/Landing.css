@@ -81,13 +81,14 @@ body {
   gap: 4rem; /* Gap between cards */
   padding: 0 2%; /* Padding on the sides */
 }
-
+.about-card p{
+  text-align: left;
+}
 .about-card {
   flex: 1; /* Allow cards to grow evenly */
   min-width: 300px; /* Minimum width for the cards */
   max-width: 400px; /* Increased max-width for the cards */
   width: 100%; /* Full width up to max-width */
-  text-align: center; /* Center text */
   background-color: rgb(255, 255, 255); /* Blue background for boxes */
   border: 1px solid rgb(224, 224, 224); /* Light border for emphasis */
   border-radius: 12px; /* Rounded corners */
@@ -190,6 +191,36 @@ body {
   font-size: 0.95rem;
 }
 
+.dataset-overview-section {
+  background-color: rgb(251, 251, 251); /* Light grey background for dataset section */
+  padding: 2rem 1rem; /* Padding */
+  text-align: center; /* Center-align text */
+  
+}
+.dataset-overview-section h1 {
+  color: rgb(32, 33, 36);
+  font-size: 22px; /* Use original font size for larger screens */
+  font-family: 'Zeitung', sans-serif;
+  font-weight: 700;
+  text-align: center; /* Ensure left alignment */
+}
+
+.dataset-stats {
+  display: flex; /* Flex layout for dataset items */
+  justify-content: space-around; /* Space between items */
+  flex-wrap: wrap; /* Wrap items on small screens */
+  margin-top: 1rem; /* Space above stats */
+}
+
+.dataset-item {
+  flex: 1; /* Allow items to grow evenly */
+  min-width: 100px; /* Minimum width for dataset items */
+  margin: 1rem; /* Margin around each dataset item */
+  background-color: white; /* White background for item */
+  padding: 1rem; /* Padding inside item */
+  border-radius: 10px; /* Rounded corners */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Shadow effect */
+}
 .main-icon {
 margin-right: 10px;
 font-weight: normal;
