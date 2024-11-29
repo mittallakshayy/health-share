@@ -12,12 +12,12 @@ import Modal from "@mui/material/Modal";
 import Box from "@mui/material/Box";
 
 const style = {
-  position: 'absolute',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
   width: 400,
-  bgcolor: 'background.paper',
+  bgcolor: "background.paper",
   boxShadow: 24,
   p: 4,
 };
@@ -27,8 +27,8 @@ export default function BasicTable(props) {
   const [expandedTextId, setExpandedTextId] = React.useState(null);
   const [sortOrder, setSortOrder] = React.useState("asc");
   const [openModal, setOpenModal] = React.useState(false);
-  const [modalText, setModalText] = React.useState('');
-  
+  const [modalText, setModalText] = React.useState("");
+
   const startIndex = props.startIndex;
   const rows = props.data;
 
@@ -36,17 +36,17 @@ export default function BasicTable(props) {
     if (text.length <= maxLength) {
       return text;
     } else {
-      return text.substring(0, maxLength) + "..."; 
+      return text.substring(0, maxLength) + "...";
     }
   };
 
   const formatDate = (dateString) => {
     if (!dateString) {
-      return '';
+      return "";
     }
 
     const date = new Date(dateString);
-    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
     return `${month}-${year}`;
   };
@@ -58,7 +58,7 @@ export default function BasicTable(props) {
 
   const handleCloseModal = () => {
     setOpenModal(false);
-    setModalText('');
+    setModalText("");
   };
 
   const handleSortChange = (property) => (event) => {
@@ -77,11 +77,18 @@ export default function BasicTable(props) {
 
   return (
     <TableContainer component={Paper}>
-      <Table sx={{ minWidth: 950, backgroundColor: "aliceblue" }} aria-label="simple table">
-        <TableHead style={{ backgroundColor: 'aliceblue' }}>
+      <Table
+        sx={{ minWidth: 950, backgroundColor: "aliceblue" }}
+        aria-label="simple table"
+      >
+        <TableHead style={{ backgroundColor: "aliceblue" }}>
           <TableRow>
-            <TableCell align="center"><b>Sr No</b></TableCell>
-            <TableCell align="center"><b>Source</b></TableCell>
+            <TableCell align="center">
+              <b>Sr No</b>
+            </TableCell>
+            <TableCell align="center">
+              <b>Source</b>
+            </TableCell>
             <TableCell align="center">
               <TableSortLabel
                 active={sortBy === "created_at"}
@@ -91,37 +98,59 @@ export default function BasicTable(props) {
                 <b>Date</b>
               </TableSortLabel>
             </TableCell>
-            <TableCell align="center"><b>Text</b></TableCell>
-            <TableCell align="center"><b>URL</b></TableCell>
+            <TableCell align="center">
+              <b>Text</b>
+            </TableCell>
+            <TableCell align="center">
+              <b>URL</b>
+            </TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {sortedRows.map((row, index) => (
-            <TableRow key={row.id} sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
+            <TableRow
+              key={row.id}
+              sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+            >
               <TableCell component="th" scope="row" align="center">
-                {startIndex + index} {/* Use startIndex to continue serial numbers */}
+                {startIndex + index}{" "}
+                {/* Use startIndex to continue serial numbers */}
               </TableCell>
               <TableCell align="center">{row.data_source}</TableCell>
               <TableCell align="center">{formatDate(row.created_at)}</TableCell>
               <TableCell align="left">
                 {row.data_source === "Medium" || row.data_source === "CNN" ? (
-                  <Link to={`/article/${row.id}`}
-                    style={{ background: "none", color: "black", border: "none", cursor: "pointer", textDecoration: "none" }}
-                    onMouseOver={(e) => e.target.style.color = "#2598da"}
-                    onMouseOut={(e) => e.target.style.color = "black"}
+                  <Link
+                    to={`/article/${row.id}`}
+                    style={{
+                      background: "none",
+                      color: "black",
+                      border: "none",
+                      cursor: "pointer",
+                      textDecoration: "none",
+                    }}
+                    onMouseOver={(e) => (e.target.style.color = "#2598da")}
+                    onMouseOut={(e) => (e.target.style.color = "black")}
                     onClick={(e) => {
                       e.preventDefault();
-                      window.open(`/article/${row.id}`, "_blank", "noopener,noreferrer");
+                      window.open(
+                        `/article/${row.id}`,
+                        "_blank",
+                        "noopener,noreferrer"
+                      );
                     }}
                   >
                     {truncateText(row.text, 100)}
                   </Link>
                 ) : (
                   <>
-                    {truncateText(row.text || '', 100)}  {/* Use empty string if text is null */}
+                    {truncateText(row.text || "", 100)}{" "}
+                    {/* Use empty string if text is null */}
                     <span
                       style={{ color: "#238bc8", cursor: "pointer" }}
-                      onClick={() => handleOpenModal(row.text || 'No Text Available')}
+                      onClick={() =>
+                        handleOpenModal(row.text || "No Text Available")
+                      }
                     >
                       more
                     </span>
@@ -129,7 +158,8 @@ export default function BasicTable(props) {
                 )}
               </TableCell>
               <TableCell align="center">
-                {(row.data_source === "Medium" || row.data_source === "CNN") && (
+                {(row.data_source === "Medium" ||
+                  row.data_source === "CNN") && (
                   <a
                     href={row.url}
                     target="_blank"
@@ -144,7 +174,7 @@ export default function BasicTable(props) {
           ))}
         </TableBody>
       </Table>
-      
+
       {/* Modal for expanded text */}
       <Modal
         open={openModal}

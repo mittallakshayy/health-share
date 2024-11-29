@@ -3,6 +3,18 @@ import HealthAndSafetyIcon from "@mui/icons-material/HealthAndSafety";
 import "./Navbar.css";
 
 const Navbar = () => {
+  const handleScrollToTeam = () => {
+    const teamSection = document.getElementById("team-section");
+    if (teamSection) {
+      teamSection.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+  const handleScrollToAbout = () => {
+    const teamSection = document.getElementById("about-section");
+    if (teamSection) {
+      teamSection.scrollIntoView({ behavior: "smooth" });
+    }
+  };
   return (
     <nav>
       <div className="nav-logo-container">
@@ -18,8 +30,8 @@ const Navbar = () => {
         <a href="/">Home</a>
         <a href="/visualize">Data</a>
         <a href="/analyze">Analytics</a>
-        <a href="/">About</a>
-        <a href="">Contact</a>
+        <button onClick={handleScrollToAbout}>About</button>
+        <button onClick={handleScrollToTeam}>Contact</button>
 
         {/* <button className="primary-button">Get Started</button> */}
       </div>
