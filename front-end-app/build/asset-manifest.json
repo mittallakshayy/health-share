@@ -1,7 +1,8 @@
 {
   "files": {
-    "main.css": "/static/css/main.85f4d2fe.css",
-    "main.js": "/static/js/main.2e8b3f85.js",
+    "main.css": "/static/css/main.45023893.css",
+    "main.js": "/static/js/main.3f737279.js",
+    "static/media/Lakshay.jpg": "/static/media/Lakshay.21a252c9334a8cdbdbc5.jpg",
     "static/media/img7.png": "/static/media/img7.a00797aa98ddf42eaa9e.png",
     "static/media/img1.png": "/static/media/img1.3c092aa10f3680ed6ed6.png",
     "static/media/img4.png": "/static/media/img4.5817bd0d877ec195d91d.png",
@@ -11,12 +12,14 @@
     "static/media/img5.png": "/static/media/img5.b1ba9cc02556b0d1b3bb.png",
     "static/media/img8.png": "/static/media/img8.dce84e7530cdb8149b2a.png",
     "static/media/home-banner-image.png": "/static/media/home-banner-image.5379f06fef240e95ee86.png",
+    "static/media/Parth.jpeg": "/static/media/Parth.ac2eed2b68152b30736f.jpeg",
+    "static/media/Sanjana.jpeg": "/static/media/Sanjana.78603c4fe32288b0a699.jpeg",
     "index.html": "/index.html",
-    "main.85f4d2fe.css.map": "/static/css/main.85f4d2fe.css.map",
-    "main.2e8b3f85.js.map": "/static/js/main.2e8b3f85.js.map"
+    "main.45023893.css.map": "/static/css/main.45023893.css.map",
+    "main.3f737279.js.map": "/static/js/main.3f737279.js.map"
   },
   "entrypoints": [
-    "static/css/main.85f4d2fe.css",
-    "static/js/main.2e8b3f85.js"
+    "static/css/main.45023893.css",
+    "static/js/main.3f737279.js"
   ]
 }
