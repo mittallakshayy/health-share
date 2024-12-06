@@ -3,6 +3,7 @@ import "./team.css";
 import Lakshay from "../../Assets/Lakshay.jpg";
 import Sanjana from "../../Assets/Sanjana.jpeg";
 import Parth from "../../Assets/Parth.jpeg";
+import Fernando from "../../Assets/Fernando_Carvalho.jpg";
 
 const teamMembers = [
   {
@@ -13,8 +14,7 @@ const teamMembers = [
   },
 
   {
-    imgUrl:
-      "https://faculty.sfsu.edu/sites/default/files/styles/sfsu-100x100/public/people/profile_photo/Fernando_Carvalho-web.jpg?itok=jM9R5wjZ",
+    imgUrl: Fernando,
     name: "Fernando Carvalho",
     position: "Assistant Professor",
   },

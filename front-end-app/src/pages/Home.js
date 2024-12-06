@@ -474,11 +474,11 @@ function Home() {
                 const totalPages = Math.ceil(totalRecords / resultsPerPage);
                 if (page >= 1 && page <= totalPages && !isNaN(value)) {
                   if (queryString) {
-                    handleQuery(queryString, page); // Handle search pagination
+                    handleQuery(queryString, page);
                   } else if (currentSource.length === 0) {
-                    fetchData(page); // Navigate to the next page
+                    fetchData(page);
                   } else {
-                    handleSortBy(currentSource.join(","), page); // Navigate to the next page with sorting
+                    handleSortBy(currentSource.join(","), page);
                   }
                 } else {
                   alert("Invalid input");
@@ -524,11 +524,11 @@ function Home() {
             onClick={() => {
               const lastPage = Math.ceil(totalRecords / resultsPerPage);
               if (queryString) {
-                handleQuery(queryString, lastPage); // Handle search pagination
+                handleQuery(queryString, lastPage);
               } else if (currentSource.length === 0) {
-                fetchData(lastPage); // Navigate to the last page
+                fetchData(lastPage);
               } else {
-                handleSortBy(currentSource.join(","), lastPage); // Navigate to the last page with sorting
+                handleSortBy(currentSource.join(","), lastPage);
               }
             }}
             style={{

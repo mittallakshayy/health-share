@@ -4,6 +4,7 @@ import "react-responsive-carousel/lib/styles/carousel.min.css";
 import { useNavigate } from "react-router-dom";
 import CountUp from "react-countup";
 import BannerImage from "../../Assets/home-banner-image.png";
+import NewBannerImage from "../../Assets/illustration.jpg";
 import { FiArrowRight } from "react-icons/fi";
 import PeopleIcon from "@mui/icons-material/People";
 import DevicesIcon from "@mui/icons-material/Devices";
@@ -121,7 +122,7 @@ const Landing = () => {
             </div>
           </div>
           <div className="home-image-section">
-            <img src={BannerImage} alt="" />
+            <img src={NewBannerImage} alt="" />
           </div>
         </div>
 
