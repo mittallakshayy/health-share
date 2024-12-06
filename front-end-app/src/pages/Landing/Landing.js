@@ -122,7 +122,7 @@ const Landing = () => {
             </div>
           </div>
           <div className="home-image-section">
-            <img src={NewBannerImage} alt="" />
+            <img src={NewBannerImage} alt="" style={{ width: "95%" }} />
           </div>
         </div>
 
