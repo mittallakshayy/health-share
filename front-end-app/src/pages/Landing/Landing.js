@@ -103,19 +103,19 @@ const Landing = () => {
             <div className="stats-flexbox">
               <div className="stats-item">
                 <h3>
-                  <CountUp start={0} duration={2} end={35} />K
+                  <CountUp start={0} duration={2} end={100} />K
                 </h3>
                 <p>Tweets</p>
               </div>
               <div className="stats-item">
                 <h3>
-                  <CountUp start={0} duration={2} end={12} />K
+                  <CountUp start={0} duration={2} end={10} />K
                 </h3>
                 <p>Articles</p>
               </div>
               <div className="stats-item">
                 <h3>
-                  <CountUp start={0} duration={3} end={2} />K
+                  <CountUp start={0} duration={3} end={1} />K
                 </h3>
                 <p>Posts</p>
               </div>
