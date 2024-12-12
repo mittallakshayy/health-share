@@ -188,6 +188,10 @@ function Home() {
 
   const handleExportAllResults = async () => {
     try {
+      if (totalRecords > 1000) {
+        alert("Cannot Export more than 1000 records");
+        return;
+      }
       const sources = currentSource.join(",");
       let response;
       if (queryString) {
