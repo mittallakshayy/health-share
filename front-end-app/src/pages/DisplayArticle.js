@@ -30,10 +30,12 @@ export default function Article() {
 
   const text = data && data.text;
   const sentences = text && text.match(/[^.!?]+[.!?]+/g);
-  const third = sentences && Math.ceil(sentences.length / 3);
-  const paragraph1 = sentences && sentences.slice(0, third).join(" ");
-  const paragraph2 = sentences && sentences.slice(third, 2 * third).join(" ");
-  const paragraph3 = sentences && sentences.slice(2 * third).join(" ");
+  const fifth = sentences && Math.ceil(sentences.length / 5);
+  const paragraph1 = sentences && sentences.slice(0, fifth).join(" ");
+  const paragraph2 = sentences && sentences.slice(fifth, 2 * fifth).join(" ");
+  const paragraph3 = sentences && sentences.slice(2 * fifth, 3 * fifth).join(" ");
+  const paragraph4 = sentences && sentences.slice(3 * fifth, 4 * fifth).join(" ");
+  const paragraph5 = sentences && sentences.slice(4 * fifth).join(" ");
 
   return (
     <div style={{ padding: "27px", fontFamily: "sans-serif", backgroundColor: "#f9f9f9", fontSize:'0.9rem' }}>
@@ -51,9 +53,56 @@ export default function Article() {
           {data && data.url}
         </a>
         
-        <p style={{ color: "#333", lineHeight: "1.6", marginBottom: "10px" }}> {paragraph1}</p>
-        <p style={{ color: "#333", lineHeight: "1.6", marginBottom: "10px" }}> {paragraph2}</p>
-        <p style={{ color: "#333", lineHeight: "1.6", marginBottom: "10px" }}> {paragraph3}</p>
+        <p
+          style={{
+            color: "#333",
+            lineHeight: "1.6",
+            marginBottom: "10px",
+            textAlign: "left",
+          }}
+        >
+          {paragraph1}
+        </p>
+        <p
+          style={{
+            color: "#333",
+            lineHeight: "1.6",
+            marginBottom: "10px",
+            textAlign: "left",
+          }}
+        >
+          {paragraph2}
+        </p>
+        <p
+          style={{
+            color: "#333",
+            lineHeight: "1.6",
+            marginBottom: "10px",
+            textAlign: "left",
+          }}
+        >
+          {paragraph3}
+        </p>
+        <p
+          style={{
+            color: "#333",
+            lineHeight: "1.6",
+            marginBottom: "10px",
+            textAlign: "left",
+          }}
+        >
+          {paragraph4}
+        </p>
+        <p
+          style={{
+            color: "#333",
+            lineHeight: "1.6",
+            marginBottom: "10px",
+            textAlign: "left",
+          }}
+        >
+          {paragraph5}
+        </p>
       </div>
     </div>
   );

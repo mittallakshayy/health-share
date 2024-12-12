@@ -103,19 +103,19 @@ const Landing = () => {
             <div className="stats-flexbox">
               <div className="stats-item">
                 <h3>
-                  <CountUp start={0} duration={2} end={50} />K
+                  <CountUp start={0} duration={2} end={35} />K
                 </h3>
                 <p>Tweets</p>
               </div>
               <div className="stats-item">
                 <h3>
-                  <CountUp start={0} duration={2} end={15} />K
+                  <CountUp start={0} duration={2} end={12} />K
                 </h3>
                 <p>Articles</p>
               </div>
               <div className="stats-item">
                 <h3>
-                  <CountUp start={0} duration={3} end={7} />K
+                  <CountUp start={0} duration={3} end={2} />K
                 </h3>
                 <p>Posts</p>
               </div>
@@ -181,28 +181,6 @@ const Landing = () => {
         </div>
       </div>
 
-      <div className="dataset-overview-section">
-        <h1>Dataset Overview</h1>
-        <h6>
-          At HealthShare, you'll find a wealth of stories and data needed to
-          understand the challenges faced by frontline medical professionals
-          during the pandemic.
-        </h6>
-        <div className="dataset-stats">
-          <div className="dataset-item">
-            <h3>50K</h3>
-            <p>Tweets</p>
-          </div>
-          <div className="dataset-item">
-            <h3>15k</h3>
-            <p>Published Articles</p>
-          </div>
-          <div className="dataset-item">
-            <h3>6,900</h3>
-            <p>Facebook</p>
-          </div>
-        </div>
-      </div>
 
       <div className="glimpse-section">
         <h1 className="glimpse-heading">Glimpse into Frontline stories</h1>

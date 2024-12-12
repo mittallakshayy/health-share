@@ -305,7 +305,7 @@ function Home() {
               onMouseEnter={(e) => (e.target.style.backgroundColor = "#99ceed")}
               onMouseLeave={(e) => (e.target.style.backgroundColor = "inherit")}
             >
-              Advanced
+              Search
             </button>
           </Link>
 
