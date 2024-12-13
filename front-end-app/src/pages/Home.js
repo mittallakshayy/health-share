@@ -188,7 +188,7 @@ function Home() {
 
   const handleExportAllResults = async () => {
     try {
-      if (totalRecords > 1000) {
+      if (Number(totalRecords) > 1000) {
         alert("Cannot Export more than 1000 records");
         return;
       }
