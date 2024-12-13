@@ -103,7 +103,7 @@ const Landing = () => {
             <div className="stats-flexbox">
               <div className="stats-item">
                 <h3>
-                  <CountUp start={0} duration={2} end={100} />K
+                  <CountUp start={0} duration={2} end={90} />K
                 </h3>
                 <p>Tweets</p>
               </div>
@@ -180,7 +180,6 @@ const Landing = () => {
           </div>
         </div>
       </div>
-
 
       <div className="glimpse-section">
         <h1 className="glimpse-heading">Glimpse into Frontline stories</h1>
