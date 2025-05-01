@@ -1,145 +1,172 @@
 import React, { useState } from 'react';
+import { Form, Button, ToggleButtonGroup, ToggleButton, Badge, ButtonGroup } from 'react-bootstrap';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import Select from 'react-select';
 
-const AdvancedSearch = () => {
-  // State to hold form inputs
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
-  const [sourceType, setSourceType] = useState("all");
-  
+const sourceOptions = [
+  { value: 'Twitter', label: 'Twitter' },
+  { value: 'CNN', label: 'CNN' },
+  { value: 'Medium', label: 'Medium' },
+];
+const emotionOptions = ['All', 'Anger', 'Anticipation', 'Disgust', 'Fear', 'Joy', 'Sadness', 'Surprise', 'Trust'];
 
+const AdvancedSearch = ({ onSearch }) => {
+  const [selectedSources, setSelectedSources] = useState([]);
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
+  const [aiInsights, setAiInsights] = useState(false);
+  const [sentiment, setSentiment] = useState([]);
+  const [emotion, setEmotion] = useState(['All']); // Default to 'All'
+
+  const formatDate = (date) => {
+    if (!date) return '';
+    return date.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+  };
+
+  const handleSourceChange = (options) => {
+    setSelectedSources(options || []);
+  };
+
+  const handleSentimentChange = (value) => {
+    setSentiment((prev) => 
+      prev.includes(value) 
+        ? prev.filter((s) => s !== value) 
+        : [...prev, value]
+    );
+  };
+
+  const handleEmotionChange = (value) => {
+    if (value === 'All') {
+      // If 'All' is selected, deselect all other options
+      setEmotion(['All']);
+    } else {
+      // If any other emotion is selected, remove 'All' from the selection
+      setEmotion((prev) => {
+        const newEmotions = prev.includes(value)
+          ? prev.filter((e) => e !== value)
+          : [...prev.filter(e => e !== 'All'), value];
+        
+        // If no emotions are selected, default back to 'All'
+        return newEmotions.length === 0 ? ['All'] : newEmotions;
+      });
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    // Format dates for API request
+    const formattedStartDate = formatDate(startDate);
+    const formattedEndDate = formatDate(endDate);
+    
+    // Prepare search parameters
+    const searchParams = {
+      sources: selectedSources,
+      startDate: formattedStartDate,
+      endDate: formattedEndDate,
+      sentiment: sentiment,
+      emotions: emotion.join(',')
+    };
+    
+    // Call the onSearch callback from parent
+    if (onSearch) {
+      onSearch(searchParams);
+    }
+  };
 
   return (
-    <div style={{ marginTop: '6px',backgroundColor: "#f6fbfd", padding: '20px', borderRadius: '8px', boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)' }}>
-    <h5 style={{ color: "#333", marginBottom: '15px',fontWeight:'bold' }}>Advanced Search</h5>
-    <div style={{ marginBottom: '13px' }}>
-      <label style={{ display: 'block', margin: '3px', fontWeight:'bold' }}>
-        Keywords: 
-        <input
-          type="text"
-          name="keywords"
-          placeholder="Enter keywords"
-          style={{
-            width: '30%',
-            marginLeft:'46px',
-            padding: '8px',
-            borderRadius: '4px',
-            border: '1px solid #ccc',
-            fontSize: '14px',
-          }}
+    <Form className="p-4" onSubmit={handleSubmit}>
+      {/* Multiselect with Chips */}
+      <div className="mb-3">
+        <Form.Group controlId="source" className="mb-3">
+          <Form.Label>Source</Form.Label>
+          <Select
+            isMulti
+            options={sourceOptions}
+            value={selectedSources}
+            onChange={handleSourceChange}
+            className="mt-1"
+            classNamePrefix="react-select"
+            placeholder="Select data sources"
+          />
+        </Form.Group>
+      </div>
+
+      {/* Date Picker */}
+      <Form.Group controlId="dateRange" className="mb-3">
+        <Form.Label>Date Range</Form.Label>
+        <div className="d-flex align-items-center">
+          <DatePicker
+            selected={startDate}
+            onChange={(date) => setStartDate(date)}
+            placeholderText="Start Date"
+            className="form-control me-2"
+          />
+          <DatePicker
+            selected={endDate}
+            onChange={(date) => setEndDate(date)}
+            placeholderText="End Date"
+            className="form-control"
+          />
+        </div>
+      </Form.Group>
+
+      {/* Toggle Button */}
+      <Form.Group controlId="aiInsights" className="mb-3">
+        <Form.Label>AI Insights</Form.Label>
+        <Form.Check
+          type="switch"
+          label="Enable"
+          checked={aiInsights}
+          onChange={() => setAiInsights((prev) => !prev)}
         />
-      </label>
+      </Form.Group>
+
+      {/* Checkbox for Sentiment */}
+      <Form.Group controlId="sentiment" className="mb-3">
+        <Form.Label>Sentiment</Form.Label>
+        <div>
+          {['Positive', 'Negative', 'Neutral'].map((item) => (
+            <Form.Check
+              key={item}
+              type="checkbox"
+              inline
+              label={item}
+              value={item}
+              checked={sentiment.includes(item)}
+              onChange={() => handleSentimentChange(item)}
+            />
+          ))}
+        </div>
+      </Form.Group>
+
+      {/* Pills Buttons for Emotions */}
+      <Form.Group controlId="emotions" className="mb-3">
+        <Form.Label>Emotions</Form.Label>
+        <div>
+          {emotionOptions.map((item) => (
+            <Badge
+              key={item}
+              bg={emotion.includes(item) ? 'primary' : 'secondary'}
+              onClick={() => handleEmotionChange(item)}
+              className="me-2 p-2 cursor-pointer"
+              style={{ cursor: 'pointer' }}
+            >
+              {item}
+            </Badge>
+          ))}
+        </div>
+      </Form.Group>
+
+      {/* Search Button */}
+      <div className="d-grid gap-2 mt-4">
+        <Button variant="primary" type="submit">
+          Search & Visualize
+        </Button>
       </div>
-      <div style={{ marginBottom: '13px' }}>
-        <label style={{ display: 'block', margin: '3px', fontWeight:'bold'  }}>
-          Source Type:
-          <select style={{
-              width: '30%',
-              marginLeft:'26px',
-              padding: '8px',
-              borderRadius: '4px',
-              border: '1px solid #ccc',
-              fontSize: '14px',
-            }} 
-            name="sourceType" 
-            value={sourceType} 
-            onChange={(e) => setSourceType(e.target.value)}>
-            <option value="all">All</option>
-            <option value="news">CNN</option>
-            <option value="social-media">Social Media</option>
-            <option value="articles">Articles</option>
-          </select>
-        </label>
-      </div>
-      <div style={{ marginBottom: '13px' }}>
-      <label style={{ display: 'flex', alignItems: 'center', margin: '3px', fontWeight: 'bold' }}>
-    Date Range:
-    <span style={{ fontWeight:'normal', marginLeft: '32px', marginRight: '5px' }}>From</span>
-    <input
-        type="date"
-        value={dateFrom}
-        onChange={(e) => setDateFrom(e.target.value)}
-        style={{
-            padding: '8px',
-            borderRadius: '4px',
-            border: '1px solid #ccc',
-            fontSize: '14px',
-            width: '100px', // Set width appropriately
-            marginRight: '5px', // Space between input fields
-        }}
-    />
-    <span style={{ fontWeight:'normal', marginRight: '5px' }}>To</span>
-    <input
-        type="date"
-        value={dateTo}
-        onChange={(e) => setDateTo(e.target.value)}
-        style={{
-            padding: '8px',
-            borderRadius: '4px',
-            border: '1px solid #ccc',
-            fontSize: '14px',
-            width: '100px', // Set width appropriately
-        }}
-    />
-</label>
-      </div>
-      <div style={{ marginBottom: '13px', display:'flex' }}>
-    <label style={{ fontWeight: 'bold', margin: '3px' }}>
-        Article Type:
-    </label>
-    <span style={{ marginLeft: '23px', display:'flex'}}>
-        <label style={{ display: 'flex', alignItems: 'center', marginRight: '10px'}}>
-            News
-            <input 
-                type="checkbox" 
-                style={{marginLeft:'5px'}}
-               
-            /> 
-        </label>
-        <label style={{ display: 'flex', alignItems: 'center', marginRight: '10px' }}>
-            Social Media
-            <input 
-                type="checkbox" 
-                style={{marginLeft:'5px'}}
-            /> 
-        </label>
-        <label style={{ display: 'flex', alignItems: 'center' }}>
-            Articles
-            <input 
-                type="checkbox" 
-                style={{marginLeft:'5px'}}
-            /> 
-        </label> </span> </div>
-      <div style={{ marginTop: '10px' }}>
-        <button style={{ 
-            marginRight: '10px', 
-            cursor: 'pointer', 
-            padding: '10px 15px',
-            borderRadius: '4px',
-            border: '1px solid #58afe2',
-            backgroundColor: '#58afe2', // Match the color scheme
-            color: 'white', 
-            fontSize: '14px', 
-            fontWeight: 'bold',
-            transition: 'background-color 0.3s, border-color 0.3s', // Smooth transition on hover
-        }} >
-          Search
-        </button>
-        <button style={{ 
-            marginRight: '10px', 
-            cursor: 'pointer', 
-            padding: '10px 15px',
-            borderRadius: '4px',
-            border: '1px solid #58afe2',
-            backgroundColor: '#58afe2', // Match the color scheme
-            color: 'white', 
-            fontSize: '14px', 
-            fontWeight: 'bold',
-            transition: 'background-color 0.3s, border-color 0.3s', // Smooth transition on hover
-        }} >
-          Close
-        </button>
-      </div>
-    </div>
-  )} 
+    </Form>
+  );
+}; 
 
 export default AdvancedSearch;

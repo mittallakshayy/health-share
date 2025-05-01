@@ -236,4 +236,139 @@ router.get("/api/twitter-visualization", async (req, res, next) => {
     res.status(500).send("Internal Server Error");
   }
 });
+
+// Endpoint for emotion data visualization
+router.get("/api/emotion-visualization", async (req, res, next) => {
+  try {
+    const { sources, startDate, endDate, sentiment, emotions } = req.query;
+    
+    let sqlQuery = "SELECT * FROM rawdata_with_emotion WHERE 1=1";
+    const queryParams = [];
+    let paramCounter = 1;
+
+    // Add sources filter if provided
+    if (sources && sources.length > 0) {
+      const sourceArray = sources.split(',');
+      const sourcePlaceholders = sourceArray.map(() => `$${paramCounter++}`).join(', ');
+      sqlQuery += ` AND data_source IN (${sourcePlaceholders})`;
+      queryParams.push(...sourceArray);
+    }
+
+    // Add date range filter if provided
+    if (startDate) {
+      sqlQuery += ` AND created_at >= $${paramCounter++}`;
+      queryParams.push(startDate);
+    }
+    if (endDate) {
+      sqlQuery += ` AND created_at <= $${paramCounter++}`;
+      queryParams.push(endDate);
+    }
+
+    // Add emotion filters if provided
+    if (emotions && emotions.length > 0) {
+      const emotionArray = emotions.split(',');
+      const emotionConditions = [];
+      
+      emotionArray.forEach(emotion => {
+        if (emotion !== 'All') {
+          emotionConditions.push(`${emotion.toLowerCase()} > 0.5`);
+        }
+      });
+      
+      if (emotionConditions.length > 0) {
+        sqlQuery += ` AND (${emotionConditions.join(' OR ')})`;
+      }
+    }
+
+    // Execute query
+    const result = await db.query(sqlQuery, queryParams);
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+// Endpoint specifically for wordcloud data
+router.get("/api/wordcloud-data", async (req, res, next) => {
+  try {
+    const { sources, startDate, endDate, emotions } = req.query;
+    
+    let sqlQuery = `
+      WITH words AS (
+        SELECT 
+          unnest(string_to_array(lower(regexp_replace(text, '[^a-zA-Z0-9\\s]', '', 'g')), ' ')) AS word,
+          dominant_emotion,
+          anger, anticipation, disgust, fear, joy, sadness, surprise, trust
+        FROM rawdata_with_emotion
+        WHERE 1=1
+    `;
+    
+    const queryParams = [];
+    let paramCounter = 1;
+
+    // Add sources filter if provided
+    if (sources && sources.length > 0) {
+      const sourceArray = sources.split(',');
+      const sourcePlaceholders = sourceArray.map(() => `$${paramCounter++}`).join(', ');
+      sqlQuery += ` AND data_source IN (${sourcePlaceholders})`;
+      queryParams.push(...sourceArray);
+    }
+
+    // Add date range filter if provided
+    if (startDate) {
+      sqlQuery += ` AND created_at >= $${paramCounter++}`;
+      queryParams.push(startDate);
+    }
+    if (endDate) {
+      sqlQuery += ` AND created_at <= $${paramCounter++}`;
+      queryParams.push(endDate);
+    }
+
+    // Add emotion filters if provided
+    if (emotions && emotions.length > 0 && !emotions.includes('All')) {
+      const emotionArray = emotions.split(',');
+      const emotionConditions = [];
+      
+      emotionArray.forEach(emotion => {
+        emotionConditions.push(`dominant_emotion = '${emotion}'`);
+      });
+      
+      if (emotionConditions.length > 0) {
+        sqlQuery += ` AND (${emotionConditions.join(' OR ')})`;
+      }
+    }
+
+    // Complete the query with word frequency calculation and filter out common stop words
+    sqlQuery += `
+      )
+      SELECT 
+        word,
+        COUNT(*) as frequency,
+        MODE() WITHIN GROUP (ORDER BY dominant_emotion) as dominant_emotion,
+        AVG(anger) as avg_anger,
+        AVG(anticipation) as avg_anticipation,
+        AVG(disgust) as avg_disgust,
+        AVG(fear) as avg_fear,
+        AVG(joy) as avg_joy,
+        AVG(sadness) as avg_sadness,
+        AVG(surprise) as avg_surprise,
+        AVG(trust) as avg_trust
+      FROM words
+      WHERE length(word) > 3
+      AND word NOT IN ('this', 'that', 'there', 'then', 'they', 'their', 'these', 'those', 'with', 'from', 'have', 'what', 'when', 'where', 'which', 'will', 'would', 'could', 'should', 'about')
+      GROUP BY word
+      ORDER BY frequency DESC
+      LIMIT 100
+    `;
+
+    // Execute query
+    const result = await db.query(sqlQuery, queryParams);
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
 module.exports = router;

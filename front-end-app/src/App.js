@@ -5,8 +5,10 @@ import Navbar from "./components/Navbar.js";
 import Footer from "./components/Footer.js";
 import Search from "./components/AdvancedSearch.js";
 import Article from "./pages/DisplayArticle.js";
+import Visualizations from "./components/Visualizations.js";
 import "./App.css";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+
 function App() {
   return (
     <BrowserRouter>
@@ -16,6 +18,7 @@ function App() {
         <Route exact path="/visualize" element={<Home />} />
         <Route exact path="/search" element={<Search />} />
         <Route exact path="/analyze" element={<Analytics />} />
+        <Route exact path="/emotions" element={<Visualizations />} />
         <Route path="/article/:articleId" element={<Article />} />
       </Routes>
       <Footer></Footer>
