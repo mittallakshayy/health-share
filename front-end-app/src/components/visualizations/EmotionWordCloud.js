@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import ReactWordcloud from 'react-wordcloud';
-import { Card, Spinner, Alert } from 'react-bootstrap';
+import { Card, Spinner, Alert, Badge } from 'react-bootstrap';
 import * as d3 from 'd3';
 import { schemeCategory10 } from 'd3-scale-chromatic';
 import 'tippy.js/dist/tippy.css';
@@ -22,10 +22,32 @@ const EmotionWordCloud = ({ searchParams }) => {
   const [words, setWords] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [recordCount, setRecordCount] = useState(0);
 
-  // Function to get color for a word based on its dominant emotion
+  // Get the highest emotion and its value for a word
+  const getHighestEmotion = (word) => {
+    const emotions = [
+      { name: 'Anger', value: word.avg_anger },
+      { name: 'Anticipation', value: word.avg_anticipation },
+      { name: 'Disgust', value: word.avg_disgust },
+      { name: 'Fear', value: word.avg_fear },
+      { name: 'Joy', value: word.avg_joy },
+      { name: 'Sadness', value: word.avg_sadness },
+      { name: 'Surprise', value: word.avg_surprise },
+      { name: 'Trust', value: word.avg_trust }
+    ];
+    
+    // Sort by value in descending order
+    emotions.sort((a, b) => b.value - a.value);
+    
+    // Return the highest emotion
+    return emotions[0];
+  };
+
+  // Function to get color for a word based on its highest emotion
   const getWordColor = useCallback((word) => {
-    return emotionColors[word.dominant_emotion] || '#999999'; // Default gray color
+    if (!word.highest_emotion) return '#999999';
+    return emotionColors[word.highest_emotion] || '#999999';
   }, []);
 
   // Function to create emotion percentage text for tooltip
@@ -52,7 +74,6 @@ const EmotionWordCloud = ({ searchParams }) => {
 
   // Setup wordcloud options
   const options = {
-    colors: schemeCategory10,
     enableTooltip: true,
     deterministic: true,
     fontFamily: 'Arial',
@@ -65,21 +86,27 @@ const EmotionWordCloud = ({ searchParams }) => {
     scale: 'sqrt',
     spiral: 'archimedean',
     transitionDuration: 1000,
+    tooltipOptions: {
+      allowHTML: true,
+      animation: 'scale',
+      theme: 'light',
+      arrow: true,
+      placement: 'top',
+      maxWidth: 300,
+    },
   };
 
   // Callbacks for the word cloud
-  const getCallbacks = useCallback(() => {
-    return {
-      getWordColor: getWordColor,
-      getWordTooltip: word => 
-        `<div style="text-align: left;">
-          <strong>${word.text}</strong> (${word.value} occurrences)<br>
-          <strong>Dominant Emotion:</strong> ${word.dominant_emotion}<br>
-          <strong>Emotion Percentages:</strong><br>
-          ${getEmotionPercentages(word)}
-        </div>`,
-    };
-  }, [getWordColor, getEmotionPercentages]);
+  const callbacks = {
+    getWordColor: getWordColor,
+    getWordTooltip: word => 
+      `<div style="text-align: left;">
+        <strong>${word.text}</strong> (${word.value} occurrences)<br>
+        <strong>Highest Emotion:</strong> ${word.highest_emotion}<br>
+        <strong>Emotion Percentages:</strong><br>
+        ${getEmotionPercentages(word)}
+      </div>`,
+  };
 
   useEffect(() => {
     if (!searchParams) return;
@@ -104,22 +131,33 @@ const EmotionWordCloud = ({ searchParams }) => {
         }
         
         const data = await response.json();
+        setRecordCount(data.totalRecords || 0);
         
-        // Format the data for react-wordcloud
-        const formattedWords = data.map(item => ({
-          text: item.word,
-          value: parseInt(item.frequency),
-          dominant_emotion: item.dominant_emotion,
-          avg_anger: parseFloat(item.avg_anger),
-          avg_anticipation: parseFloat(item.avg_anticipation),
-          avg_disgust: parseFloat(item.avg_disgust),
-          avg_fear: parseFloat(item.avg_fear),
-          avg_joy: parseFloat(item.avg_joy),
-          avg_sadness: parseFloat(item.avg_sadness),
-          avg_surprise: parseFloat(item.avg_surprise),
-          avg_trust: parseFloat(item.avg_trust)
-        }));
+        // Format the data for react-wordcloud and calculate highest emotion
+        const formattedWords = data.map(item => {
+          const wordData = {
+            text: item.word,
+            value: parseInt(item.frequency),
+            dominant_emotion: item.dominant_emotion,
+            avg_anger: parseFloat(item.avg_anger),
+            avg_anticipation: parseFloat(item.avg_anticipation),
+            avg_disgust: parseFloat(item.avg_disgust),
+            avg_fear: parseFloat(item.avg_fear),
+            avg_joy: parseFloat(item.avg_joy),
+            avg_sadness: parseFloat(item.avg_sadness),
+            avg_surprise: parseFloat(item.avg_surprise),
+            avg_trust: parseFloat(item.avg_trust)
+          };
+          
+          // Calculate the highest emotion
+          const highestEmotion = getHighestEmotion(wordData);
+          wordData.highest_emotion = highestEmotion.name;
+          wordData.highest_emotion_value = highestEmotion.value;
+          
+          return wordData;
+        });
         
+        console.log("Formatted words with highest emotion:", formattedWords);
         setWords(formattedWords);
       } catch (err) {
         console.error('Error fetching word cloud data:', err);
@@ -136,9 +174,16 @@ const EmotionWordCloud = ({ searchParams }) => {
   return (
     <Card>
       <Card.Body>
-        <Card.Title>Emotion Word Cloud</Card.Title>
+        <Card.Title className="d-flex justify-content-between align-items-center">
+          <div>Emotion Word Cloud</div>
+          {recordCount > 0 && (
+            <Badge bg="primary" className="fs-6">
+              {recordCount} records found
+            </Badge>
+          )}
+        </Card.Title>
         <Card.Subtitle className="mb-2 text-muted">
-          Words sized by frequency and colored by dominant emotion
+          Words sized by frequency and colored by highest emotion intensity
         </Card.Subtitle>
         
         {isLoading ? (
@@ -154,7 +199,7 @@ const EmotionWordCloud = ({ searchParams }) => {
           <Alert variant="info">No word data available. Try adjusting your search criteria.</Alert>
         ) : (
           <div style={{ height: '500px', width: '100%' }}>
-            <ReactWordcloud words={words} options={options} callbacks={getCallbacks()} />
+            <ReactWordcloud words={words} options={options} callbacks={callbacks} />
           </div>
         )}
         
