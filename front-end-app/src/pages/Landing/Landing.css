@@ -16,16 +16,20 @@ body {
   justify-content: center;
   /* margin-right: 10%; */
   margin-top: -2rem;
+  margin-bottom: 10px;
 }
 
 .home-image-section {
-  width: 600px; 
-  flex: 1; 
-  margin-right: 2.5rem;
+  width: 600px;
+  flex: 1;
+  /* margin-right: 1rem; */
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 10px;
 }
 
 .home-text-section {
-  margin-top: -7rem;
+  margin-top: -4rem;
   margin-left: 2.5rem;
   flex: 1; /* Flex grow */
   display: flex;
@@ -81,13 +85,14 @@ body {
   gap: 4rem; /* Gap between cards */
   padding: 0 2%; /* Padding on the sides */
 }
-
+.about-card p {
+  text-align: left;
+}
 .about-card {
   flex: 1; /* Allow cards to grow evenly */
   min-width: 300px; /* Minimum width for the cards */
   max-width: 400px; /* Increased max-width for the cards */
   width: 100%; /* Full width up to max-width */
-  text-align: center; /* Center text */
   background-color: rgb(255, 255, 255); /* Blue background for boxes */
   border: 1px solid rgb(224, 224, 224); /* Light border for emphasis */
   border-radius: 12px; /* Rounded corners */
@@ -103,7 +108,7 @@ body {
 .about-section h1 {
   color: rgb(32, 33, 36);
   font-size: 22px; /* Use original font size for larger screens */
-  font-family: 'Zeitung', sans-serif;
+  font-family: "Zeitung", sans-serif;
   font-weight: 700;
   margin-right: 71rem; /* Large right margin for large screens */
   margin-left: 2rem; /* Maintain left margin */
@@ -124,7 +129,7 @@ body {
   color: rgb(32, 33, 36);
   font-size: 22px; /* Use original font size for larger screens */
   padding-top: 30px; /* Keep original top padding */
-  font-family: 'Zeitung', sans-serif;
+  font-family: "Zeitung", sans-serif;
   font-weight: 700;
   margin-left: 2rem; /* Maintain left margin */
 }
@@ -144,7 +149,7 @@ body {
     margin-right: 0; /* Remove large right margin */
     margin-left: 2rem; /* Maintain left margin */
   }
-  
+
   .about-section h6,
   .glimpse-section h6 {
     margin-right: 0; /* Clear right margin on smaller screens */
@@ -167,7 +172,12 @@ body {
   }
 }
 .icon-container {
-  background-color: rgba(255, 255, 255, 0.9); /* Slightly white background for icons */
+  background-color: rgba(
+    255,
+    255,
+    255,
+    0.9
+  ); /* Slightly white background for icons */
   border-radius: 50%; /* Circle shape */
   padding: 1rem; /* Padding for the icon */
   display: inline-flex; /* Align items within */
@@ -190,9 +200,42 @@ body {
   font-size: 0.95rem;
 }
 
+.dataset-overview-section {
+  background-color: rgb(
+    251,
+    251,
+    251
+  ); /* Light grey background for dataset section */
+  padding: 2rem 1rem; /* Padding */
+  text-align: center; /* Center-align text */
+}
+.dataset-overview-section h1 {
+  color: rgb(32, 33, 36);
+  font-size: 22px; /* Use original font size for larger screens */
+  font-family: "Zeitung", sans-serif;
+  font-weight: 700;
+  text-align: center; /* Ensure left alignment */
+}
+
+.dataset-stats {
+  display: flex; /* Flex layout for dataset items */
+  justify-content: space-around; /* Space between items */
+  flex-wrap: wrap; /* Wrap items on small screens */
+  margin-top: 1rem; /* Space above stats */
+}
+
+.dataset-item {
+  flex: 1; /* Allow items to grow evenly */
+  min-width: 100px; /* Minimum width for dataset items */
+  margin: 1rem; /* Margin around each dataset item */
+  background-color: white; /* White background for item */
+  padding: 1rem; /* Padding inside item */
+  border-radius: 10px; /* Rounded corners */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Shadow effect */
+}
 .main-icon {
-margin-right: 10px;
-font-weight: normal;
+  margin-right: 10px;
+  font-weight: normal;
 }
 /* Additional styling for images if needed */
 img {
@@ -205,7 +248,7 @@ img {
   cursor: pointer;
   overflow: hidden;
   width: 100%;
-  padding:40px;
+  padding: 40px;
   padding-bottom: 6rem;
   gap: 0px; /* Reduce the space between the images */
 }
@@ -213,10 +256,10 @@ img {
 /* Carousel image styles */
 .carousel-image {
   flex: 0 0 25%; /* Show 4 images at a time */
-  border:0.05px solid rgb(216, 214, 214);
+  border: 0.05px solid rgb(216, 214, 214);
   border-radius: 10px;
   height: 19rem;
-  width:8rem;
+  width: 8rem;
   margin-left: 2px;
   margin-right: 30px; /* Optional, adjust for additional spacing */
   transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -233,4 +276,44 @@ img {
   padding: 1rem; /* Padding for the footer */
   position: relative; /* To stay below the content */
   margin-top: 0; /* Ensure no margin at the top */
+}
+.stats-flexbox {
+  display: flex;
+  justify-content: center;
+  gap: 50px; /* Distribute space evenly */
+  align-items: center; /* Center items vertically */
+  margin-top: 30px;
+}
+
+.stats-item {
+  text-align: center;
+  /* background-color: #f0f0f0; Light background for each item */
+  border-radius: 8px;
+  padding: 10px;
+  width: 25%; /* Ensure each item takes up 1/3 of the space */
+}
+
+.stats-item h3 {
+  font-size: 2.5rem; /* Large text for the count */
+  font-weight: bold;
+  color: white; /* Dark text color */
+  margin-bottom: 10px;
+}
+
+.stats-item p {
+  font-size: 1.2rem;
+  color: white; /* Lighter text color for description */
+}
+
+/* Ensure responsiveness */
+@media (max-width: 768px) {
+  .stats-flexbox {
+    flex-direction: column; /* Stack items vertically on smaller screens */
+    align-items: center;
+  }
+
+  .stats-item {
+    width: 80%; /* Allow more space on smaller screens */
+    margin-bottom: 20px;
+  }
 }
