@@ -14,6 +14,7 @@ const EmotionTimeline = ({ searchParams }) => {
   const [zoomTransform, setZoomTransform] = useState(null);
   const [selectedTimeRange, setSelectedTimeRange] = useState(null);
   const [brushExtent, setBrushExtent] = useState(null);
+  const [yScaleType, setYScaleType] = useState('wiggle'); // 'wiggle', 'expand', or 'none'
   
   const svgRef = useRef();
   const containerRef = useRef();
@@ -190,6 +191,18 @@ const EmotionTimeline = ({ searchParams }) => {
     }
   };
   
+  // Add new function to handle Y-axis scaling changes
+  const handleYScaleChange = (type) => {
+    setYScaleType(type);
+    
+    // Force redraw with the new scale type
+    if (data.length > 0) {
+      const tempData = [...data];
+      setData([]);
+      setTimeout(() => setData(tempData), 10);
+    }
+  };
+  
   // Draw the stream graph whenever data changes
   useEffect(() => {
     if (data.length === 0 || !svgRef.current || emotionList.length === 0) return;
@@ -238,14 +251,14 @@ const EmotionTimeline = ({ searchParams }) => {
       // Create tooltip div
       const tooltip = d3.select(tooltipRef.current)
         .classed('emotion-timeline-tooltip', true)
-        .style('position', 'absolute')
+        .style('position', 'fixed')
         .style('visibility', 'hidden')
         .style('background-color', 'white')
         .style('border', '1px solid #ddd')
         .style('border-radius', '4px')
         .style('padding', '10px')
-        .style('box-shadow', '0 2px 12px rgba(0,0,0,0.15)')
-        .style('z-index', '10000')
+        .style('box-shadow', '0 4px 15px rgba(0,0,0,0.2)')
+        .style('z-index', '9999')
         .style('pointer-events', 'none')
         .style('min-width', '200px')
         .style('font-size', '14px')
@@ -294,11 +307,19 @@ const EmotionTimeline = ({ searchParams }) => {
         console.log("Added duplicate point for single data point case:", formattedData);
       }
       
-      // Create stack generator - ensure we're only using filtered emotions (no 'Mixed')
+      // Create stack generator with selected offset based on yScaleType
       const stack = d3.stack()
         .keys(emotionList)
-        .order(d3.stackOrderNone)
-        .offset(d3.stackOffsetWiggle); // This creates a stream graph
+        .order(d3.stackOrderNone);
+        
+      // Apply the appropriate offset based on user selection
+      if (yScaleType === 'wiggle') {
+        stack.offset(d3.stackOffsetWiggle); // Stream graph (default)
+      } else if (yScaleType === 'expand') {
+        stack.offset(d3.stackOffsetExpand); // Normalized to 100%
+      } else {
+        stack.offset(d3.stackOffsetNone); // Regular stacked area
+      }
       
       // Create the layers
       let layers;
@@ -336,6 +357,15 @@ const EmotionTimeline = ({ searchParams }) => {
       const y = d3.scaleLinear()
         .domain(yExtent)
         .range([height, 0]);
+      
+      // Get formatted y-axis ticks based on the scale type
+      const getYAxisTicks = () => {
+        if (yScaleType === 'expand') {
+          return d3.axisLeft(y).ticks(5).tickFormat(d => `${Math.round(d * 100)}%`);
+        } else {
+          return d3.axisLeft(y).ticks(5);
+        }
+      };
       
       // Create zoom behavior
       const zoom = d3.zoom()
@@ -415,19 +445,34 @@ const EmotionTimeline = ({ searchParams }) => {
         .style("opacity", 0.8)
         .style("stroke", "#fff")
         .style("stroke-width", 0.1)
+        .style("pointer-events", "all") // Ensure layers can receive mouse events
         .attr("clip-path", "url(#clip)") // Apply clip path to prevent drawing outside
         .on("mouseover", function(event, d) {
+          // Debug log to confirm mouse events are being received
+          console.log("Mouseover on layer:", d.key);
+          
+          // Fix for hover stuck issue - clear any previous stuck hover states
+          mainGroup.selectAll(".layer")
+            .style("opacity", 0.8)
+            .style("stroke", "#fff")
+            .style("stroke-width", 0.1);
+            
           d3.select(this)
             .style("opacity", 1)
             .style("stroke", "#000")
-            .style("stroke-width", 0.5);
+            .style("stroke-width", 1); // Increased for better visibility
           
+          // Make tooltip visible
           tooltip
             .style('visibility', 'visible')
             .style('opacity', '1')
+            .style('display', 'block')
             .html(`<div style="font-weight: bold; color: ${emotionColors[d.key]};">${d.key}</div>`);
         })
         .on("mousemove", function(event, d) {
+          // Debug log the event coordinates
+          console.log("Mouse coordinates:", event.pageX, event.pageY);
+          
           // Get the zoom-adjusted x scale
           const currentX = zoomTransform ? zoomTransform.rescaleX(x) : x;
           
@@ -453,6 +498,41 @@ const EmotionTimeline = ({ searchParams }) => {
           // Format the date
           const dateFormatter = d3.timeFormat("%b %d, %Y");
           const date = dateFormatter(dataPoint.date);
+
+          // Calculate percentage of this emotion relative to all emotions on this date
+          const totalOnDate = emotionList.reduce((sum, emotion) => sum + (dataPoint[emotion] || 0), 0);
+          const percentageOnDate = totalOnDate > 0 ? (count / totalOnDate * 100).toFixed(1) : 0;
+          
+          // Calculate percentage relative to all data
+          const percentageOfTotal = totalCount > 0 ? (count / totalCount * 100).toFixed(1) : 0;
+          
+          // Find if this is the dominant emotion for this date
+          const emotions = emotionList.map(emotion => ({ 
+            name: emotion, 
+            count: dataPoint[emotion] || 0 
+          }));
+          emotions.sort((a, b) => b.count - a.count);
+          const isDominant = emotions.length > 0 && emotions[0].name === d.key && emotions[0].count > 0;
+          
+          // Find other emotions present on this date for comparison
+          const otherEmotions = emotions
+            .filter(e => e.name !== d.key && e.count > 0)
+            .slice(0, 3); // Top 3 other emotions
+              
+          // Get the most frequent emotion on this date
+          const mostFrequentEmotion = emotions.length > 0 ? emotions[0] : null;
+          
+          // Calculate percentage change from previous day if available
+          let percentageChange = null;
+          let trendIcon = "";
+          if (index > 0) {
+            const prevDay = formattedData[index - 1];
+            const prevCount = prevDay[d.key] || 0;
+            if (prevCount > 0 && count > 0) {
+              percentageChange = ((count - prevCount) / prevCount * 100).toFixed(1);
+              trendIcon = percentageChange > 0 ? "▲" : percentageChange < 0 ? "▼" : "◆";
+            }
+          }
           
           // Enhanced tooltip with more emotion context
           tooltip
@@ -461,38 +541,127 @@ const EmotionTimeline = ({ searchParams }) => {
                 font-weight: bold; 
                 color: white; 
                 background-color: ${emotionColors[d.key]}; 
-                padding: 4px 8px; 
+                padding: 6px 10px; 
                 margin: -10px -10px 8px -10px; 
                 border-radius: 4px 4px 0 0;
+                display: flex;
+                justify-content: space-between;
               ">
-                ${d.key} (${date})
+                <span>${d.key}</span>
+                <span>${date}</span>
               </div>
+              
+              <div style="
+                background-color: #f8f9fa;
+                margin: -8px -10px 8px -10px;
+                padding: 8px 10px;
+                border-bottom: 1px solid #eee;
+                text-align: center;
+                font-weight: bold;
+              ">
+                <span style="font-size: 16px;">${totalOnDate} total tweets on this day</span>
+              </div>
+              
               <div class="tooltip-content">
-                <div><strong>Count:</strong> ${count}</div>
-                <div><strong>Percentage:</strong> ${totalCount > 0 ? (count / totalCount * 100).toFixed(1) : 0}%</div>
+                <div style="margin-bottom: 12px; background-color: ${emotionColors[d.key] + '15'}; padding: 8px; border-radius: 4px;">
+                  <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                    <strong>${d.key} count:</strong>
+                    <span>${count} tweets ${percentageChange !== null ? 
+                      `<span style="color: ${percentageChange > 0 ? '#28a745' : percentageChange < 0 ? '#dc3545' : '#6c757d'}">
+                        ${trendIcon} ${Math.abs(percentageChange)}%
+                      </span>` : ''}
+                    </span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between;">
+                    <strong>% of day's tweets:</strong>
+                    <span>${percentageOnDate}%</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between;">
+                    <strong>% of all tweets:</strong>
+                    <span>${percentageOfTotal}%</span>
+                  </div>
+                </div>
+                
+                ${isDominant ? 
+                  `<div style="
+                    background-color: ${emotionColors[d.key] + '22'}; 
+                    padding: 8px; 
+                    border-radius: 4px;
+                    margin-bottom: 8px;
+                    border-left: 3px solid ${emotionColors[d.key]};
+                  ">
+                    <strong>${d.key}</strong> is the most common emotion on this day.
+                  </div>` : 
+                  mostFrequentEmotion && mostFrequentEmotion.name !== d.key ? 
+                  `<div style="
+                    background-color: ${emotionColors[mostFrequentEmotion.name] + '22'}; 
+                    padding: 8px; 
+                    border-radius: 4px;
+                    margin-bottom: 8px;
+                    border-left: 3px solid ${emotionColors[mostFrequentEmotion.name]};
+                  ">
+                    <strong>${mostFrequentEmotion.name}</strong> is the most common emotion on this day with 
+                    <strong>${mostFrequentEmotion.count}</strong> tweets (${(mostFrequentEmotion.count/totalOnDate*100).toFixed(1)}%).
+                  </div>` : ''
+                }
+                
+                ${otherEmotions.length > 0 ? 
+                  `<div style="margin-top: 8px;">
+                    <strong>Other emotions on this day:</strong>
+                    <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;">
+                      ${otherEmotions.map(e => 
+                        `<span style="
+                          background-color: ${emotionColors[e.name] + '33'}; 
+                          color: #333;
+                          padding: 4px 8px; 
+                          border-radius: 12px;
+                          font-size: 12px;
+                          white-space: nowrap;
+                        ">
+                          ${e.name}: ${e.count} (${totalOnDate > 0 ? (e.count / totalOnDate * 100).toFixed(1) : 0}%)
+                        </span>`
+                      ).join('')}
+                    </div>
+                  </div>`
+                  : '<div style="font-style: italic; color: #666; margin-top: 8px;">No other emotions recorded on this date.</div>'
+                }
               </div>
               <div class="tooltip-footer" style="
-                margin-top: 8px;
-                padding-top: 6px;
+                margin-top: 10px;
+                padding-top: 8px;
                 border-top: 1px solid #eee;
                 font-size: 11px;
                 color: #666;
+                display: flex;
+                justify-content: space-between;
               ">
-                Hover over other areas to explore or use zoom controls
+                <span>Date: ${date}</span>
+                <span>${count} of ${totalOnDate} tweets</span>
               </div>`
             )
-            .style('left', `${event.pageX + 15}px`)
-            .style('top', `${event.pageY - 30}px`);
+            // Position tooltip right at cursor with enough offset to avoid hiding cursor
+            .style('left', `${event.clientX + 20}px`)
+            .style('top', `${event.clientY - 10}px`)
+            .style('visibility', 'visible')
+            .style('display', 'block')
+            .style('opacity', '1')
+            .style('max-width', '320px')
+            .style('box-shadow', '0 4px 15px rgba(0,0,0,0.2)');
         })
-        .on("mouseout", function() {
+        .on("mouseout", function(event) {
+          // Debug log to confirm mouseout events are being received
+          console.log("Mouseout event detected");
+          
           d3.select(this)
             .style("opacity", 0.8)
             .style("stroke", "#fff")
             .style("stroke-width", 0.1);
           
+          // Hide tooltip immediately to prevent it from staying visible
           tooltip
             .style('visibility', 'hidden')
-            .style('opacity', '0');
+            .style('opacity', '0')
+            .style('display', 'none');
         });
       
       // Add x-axis at the bottom
@@ -501,10 +670,10 @@ const EmotionTimeline = ({ searchParams }) => {
         .attr("transform", `translate(0, ${height})`)
         .call(d3.axisBottom(x).ticks(Math.min(formattedData.length, 7)));
       
-      // Add y-axis
+      // Add y-axis with appropriate format based on scale type
       mainGroup.append("g")
         .attr("class", "y-axis")
-        .call(d3.axisLeft(y).ticks(5));
+        .call(getYAxisTicks());
       
       // Add axis labels
       mainGroup.append("text")
@@ -513,6 +682,18 @@ const EmotionTimeline = ({ searchParams }) => {
         .attr("y", height + margin.bottom - 5)
         .style("font-size", "12px")
         .text("Date");
+      
+      // Y-axis label based on scale type
+      const yAxisLabel = yScaleType === 'expand' ? 'Percentage (%)' : 
+                         yScaleType === 'wiggle' ? 'Stream Volume' : 'Count';
+      
+      mainGroup.append("text")
+        .attr("text-anchor", "middle")
+        .attr("transform", "rotate(-90)")
+        .attr("y", -margin.left + 15)
+        .attr("x", -height / 2)
+        .style("font-size", "12px")
+        .text(yAxisLabel);
       
       // Create brush for range selection
       const brushArea = svg.append("g")
@@ -603,7 +784,7 @@ const EmotionTimeline = ({ searchParams }) => {
     return () => {
       d3.selectAll(".emotion-timeline-tooltip").remove();
     };
-  }, [data, emotionList, totalCount, brushExtent, zoomTransform]);
+  }, [data, emotionList, totalCount, brushExtent, zoomTransform, yScaleType]);
   
   // Render the color legend
   const renderColorLegend = () => {
@@ -632,63 +813,107 @@ const EmotionTimeline = ({ searchParams }) => {
     );
   };
   
-  // Render zoom controls
+  // Render zoom controls with y-axis scale options
   const renderZoomControls = () => {
     return (
-      <div className="zoom-controls d-flex align-items-center mb-3">
-        <ButtonGroup size="sm" className="me-3">
-          <Button variant="outline-secondary" onClick={handleZoomIn} title="Zoom In">
-            <FaSearchPlus />
-          </Button>
-          <Button variant="outline-secondary" onClick={handleZoomOut} title="Zoom Out">
-            <FaSearchMinus />
-          </Button>
-          <Button variant="outline-secondary" onClick={handleResetZoom} title="Reset View">
-            <FaUndo />
-          </Button>
-        </ButtonGroup>
+      <div className="zoom-controls mb-3">
+        <div className="d-flex align-items-center mb-2">
+          <ButtonGroup size="sm" className="me-3">
+            <Button variant="outline-secondary" onClick={handleZoomIn} title="Zoom In">
+              <FaSearchPlus />
+            </Button>
+            <Button variant="outline-secondary" onClick={handleZoomOut} title="Zoom Out">
+              <FaSearchMinus />
+            </Button>
+            <Button variant="outline-secondary" onClick={handleResetZoom} title="Reset View">
+              <FaUndo />
+            </Button>
+          </ButtonGroup>
+          
+          <ButtonGroup size="sm" className="me-3">
+            <Button 
+              variant={selectedTimeRange === 7 ? "primary" : "outline-secondary"} 
+              onClick={() => handleTimeRangeFilter(7)}
+            >
+              7 Days
+            </Button>
+            <Button 
+              variant={selectedTimeRange === 30 ? "primary" : "outline-secondary"} 
+              onClick={() => handleTimeRangeFilter(30)}
+            >
+              30 Days
+            </Button>
+            <Button 
+              variant={selectedTimeRange === 90 ? "primary" : "outline-secondary"} 
+              onClick={() => handleTimeRangeFilter(90)}
+            >
+              90 Days
+            </Button>
+            <Button 
+              variant={selectedTimeRange === null && !brushExtent ? "primary" : "outline-secondary"} 
+              onClick={() => handleTimeRangeFilter(null)}
+            >
+              All
+            </Button>
+          </ButtonGroup>
+          
+          <OverlayTrigger
+            placement="right"
+            overlay={
+              <Tooltip>
+                <strong>Zoom Controls:</strong> Use buttons to zoom in/out or select a time range.<br/>
+                <strong>Brush Selection:</strong> Drag below the chart to select a time range.<br/>
+                <strong>Pan:</strong> Click and drag the chart area to move around when zoomed.
+              </Tooltip>
+            }
+          >
+            <Button variant="link" className="text-muted p-0">
+              <FaInfoCircle />
+            </Button>
+          </OverlayTrigger>
+        </div>
         
-        <ButtonGroup size="sm" className="me-3">
-          <Button 
-            variant={selectedTimeRange === 7 ? "primary" : "outline-secondary"} 
-            onClick={() => handleTimeRangeFilter(7)}
+        <div className="d-flex align-items-center">
+          <div className="me-2"><strong>Y-Axis Scale:</strong></div>
+          <ButtonGroup size="sm">
+            <Button 
+              variant={yScaleType === 'wiggle' ? "primary" : "outline-secondary"} 
+              onClick={() => handleYScaleChange('wiggle')}
+              title="Stream view (default)"
+            >
+              Stream
+            </Button>
+            <Button 
+              variant={yScaleType === 'expand' ? "primary" : "outline-secondary"} 
+              onClick={() => handleYScaleChange('expand')}
+              title="Show relative proportions (100%)"
+            >
+              Normalized (%)
+            </Button>
+            <Button 
+              variant={yScaleType === 'none' ? "primary" : "outline-secondary"} 
+              onClick={() => handleYScaleChange('none')}
+              title="Show absolute values"
+            >
+              Stacked
+            </Button>
+          </ButtonGroup>
+          
+          <OverlayTrigger
+            placement="right"
+            overlay={
+              <Tooltip>
+                <strong>Stream:</strong> Streamgraph layout showing trends over time<br/>
+                <strong>Normalized:</strong> Shows percentage distribution (100%)<br/>
+                <strong>Stacked:</strong> Shows absolute count values stacked
+              </Tooltip>
+            }
           >
-            7 Days
-          </Button>
-          <Button 
-            variant={selectedTimeRange === 30 ? "primary" : "outline-secondary"} 
-            onClick={() => handleTimeRangeFilter(30)}
-          >
-            30 Days
-          </Button>
-          <Button 
-            variant={selectedTimeRange === 90 ? "primary" : "outline-secondary"} 
-            onClick={() => handleTimeRangeFilter(90)}
-          >
-            90 Days
-          </Button>
-          <Button 
-            variant={selectedTimeRange === null && !brushExtent ? "primary" : "outline-secondary"} 
-            onClick={() => handleTimeRangeFilter(null)}
-          >
-            All
-          </Button>
-        </ButtonGroup>
-        
-        <OverlayTrigger
-          placement="right"
-          overlay={
-            <Tooltip>
-              <strong>Zoom Controls:</strong> Use buttons to zoom in/out or select a time range.<br/>
-              <strong>Brush Selection:</strong> Drag below the chart to select a time range.<br/>
-              <strong>Pan:</strong> Click and drag the chart area to move around when zoomed.
-            </Tooltip>
-          }
-        >
-          <Button variant="link" className="text-muted p-0">
-            <FaInfoCircle />
-          </Button>
-        </OverlayTrigger>
+            <Button variant="link" className="text-muted p-0 ms-2">
+              <FaInfoCircle />
+            </Button>
+          </OverlayTrigger>
+        </div>
       </div>
     );
   };
@@ -761,7 +986,7 @@ const EmotionTimeline = ({ searchParams }) => {
             {renderZoomControls()}
             
             {/* Chart container */}
-            <div className="d-flex justify-content-center mb-3" style={{ width: '100%' }}>
+            <div className="d-flex justify-content-center mb-3" style={{ width: '100%', position: 'relative' }}>
               <div 
                 ref={containerRef} 
                 className="position-relative timeline-container" 
@@ -769,12 +994,13 @@ const EmotionTimeline = ({ searchParams }) => {
                   width: '100%', 
                   height: '500px',
                   margin: '0 auto',
-                  overflow: 'hidden', /* Changed from 'visible' to 'hidden' */
+                  overflow: 'hidden',
                   backgroundColor: '#f8f9fa',
                   border: '1px solid #ddd',
                   borderRadius: '4px',
                   padding: '10px',
-                  touchAction: 'none' /* Prevent browser touch actions */
+                  touchAction: 'none',
+                  cursor: 'crosshair' // Change cursor to indicate interactivity
                 }}
               >
                 <svg 
@@ -783,11 +1009,37 @@ const EmotionTimeline = ({ searchParams }) => {
                     width: '100%', 
                     height: '100%', 
                     display: 'block',
-                    touchAction: 'none' /* Prevent browser touch actions */
+                    touchAction: 'none',
+                    cursor: 'crosshair' // Change cursor to indicate interactivity
                   }}
                 ></svg>
-                <div ref={tooltipRef}></div>
+                
+                {/* Fixed tooltip container with higher z-index */}
+                <div 
+                  ref={tooltipRef}
+                  id="emotion-timeline-tooltip" // Add ID for easier debugging
+                  style={{
+                    position: 'fixed',
+                    zIndex: 9999,
+                    visibility: 'hidden',
+                    display: 'none', // Add display property
+                    background: 'white',
+                    border: '1px solid #ddd',
+                    borderRadius: '4px',
+                    padding: '10px',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                    pointerEvents: 'none',
+                    maxWidth: '320px',
+                    transition: 'opacity 0.2s',
+                    opacity: 0
+                  }}
+                ></div>
               </div>
+            </div>
+            
+            {/* Debug message for testing */}
+            <div className="text-muted small mb-2" style={{ display: 'none' }}>
+              Hover over the colored areas to see emotion details. If tooltips aren't appearing, try clicking first.
             </div>
             
             {/* Only one legend */}
