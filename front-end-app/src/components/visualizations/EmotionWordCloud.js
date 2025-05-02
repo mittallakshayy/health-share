@@ -117,21 +117,36 @@ const EmotionWordCloud = ({ searchParams }) => {
       
       try {
         // Construct URL with search parameters
-        const queryParams = new URLSearchParams({
-          sources: searchParams.sources?.map(s => s.value).join(','),
-          startDate: searchParams.startDate,
-          endDate: searchParams.endDate,
-          emotions: searchParams.emotions
-        });
+        const queryParams = new URLSearchParams();
         
-        const response = await fetch(`http://localhost:3003/healthshare/api/wordcloud-data?${queryParams}`);
+        if (searchParams.sources && searchParams.sources.length > 0) {
+          queryParams.set('sources', searchParams.sources.map(s => s.value).join(','));
+        }
+        
+        if (searchParams.startDate) {
+          queryParams.set('startDate', searchParams.startDate);
+        }
+        
+        if (searchParams.endDate) {
+          queryParams.set('endDate', searchParams.endDate);
+        }
+        
+        if (searchParams.emotions) {
+          queryParams.set('emotions', searchParams.emotions);
+        }
+        
+        console.log("Query params:", queryParams.toString());
+        const response = await fetch(`http://localhost:3003/healthshare/api/wordcloud-data?${queryParams.toString()}`);
         
         if (!response.ok) {
           throw new Error(`API request failed with status ${response.status}`);
         }
         
-        const data = await response.json();
-        setRecordCount(data.totalRecords || 0);
+        const responseData = await response.json();
+        console.log("API Response:", responseData);
+        
+        const data = responseData.words || [];
+        setRecordCount(responseData.totalRecords || 0);
         
         // Format the data for react-wordcloud and calculate highest emotion
         const formattedWords = data.map(item => {

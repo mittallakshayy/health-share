@@ -294,6 +294,36 @@ router.get("/api/wordcloud-data", async (req, res, next) => {
   try {
     const { sources, startDate, endDate, emotions } = req.query;
     
+    // First, count total records matching the filter
+    let countQuery = `SELECT COUNT(*) FROM rawdata_with_emotion WHERE 1=1`;
+    const countParams = [];
+    let paramCounter = 1;
+    
+    // Add sources filter if provided
+    if (sources && sources.length > 0) {
+      const sourceArray = sources.split(',').filter(Boolean);
+      if (sourceArray.length > 0) {
+        const sourcePlaceholders = sourceArray.map(() => `$${paramCounter++}`).join(', ');
+        countQuery += ` AND data_source IN (${sourcePlaceholders})`;
+        countParams.push(...sourceArray);
+      }
+    }
+
+    // Add date range filter if provided
+    if (startDate) {
+      countQuery += ` AND created_at >= $${paramCounter++}`;
+      countParams.push(startDate);
+    }
+    if (endDate) {
+      countQuery += ` AND created_at <= $${paramCounter++}`;
+      countParams.push(endDate);
+    }
+    
+    // Execute count query
+    const totalCountResult = await db.query(countQuery, countParams);
+    const totalRecords = parseInt(totalCountResult.rows[0].count);
+    
+    // Main query for word data
     let sqlQuery = `
       WITH words AS (
         SELECT 
@@ -305,14 +335,16 @@ router.get("/api/wordcloud-data", async (req, res, next) => {
     `;
     
     const queryParams = [];
-    let paramCounter = 1;
+    paramCounter = 1;
 
     // Add sources filter if provided
     if (sources && sources.length > 0) {
-      const sourceArray = sources.split(',');
-      const sourcePlaceholders = sourceArray.map(() => `$${paramCounter++}`).join(', ');
-      sqlQuery += ` AND data_source IN (${sourcePlaceholders})`;
-      queryParams.push(...sourceArray);
+      const sourceArray = sources.split(',').filter(Boolean);
+      if (sourceArray.length > 0) {
+        const sourcePlaceholders = sourceArray.map(() => `$${paramCounter++}`).join(', ');
+        sqlQuery += ` AND data_source IN (${sourcePlaceholders})`;
+        queryParams.push(...sourceArray);
+      }
     }
 
     // Add date range filter if provided
@@ -325,17 +357,21 @@ router.get("/api/wordcloud-data", async (req, res, next) => {
       queryParams.push(endDate);
     }
 
-    // Add emotion filters if provided
-    if (emotions && emotions.length > 0 && !emotions.includes('All')) {
-      const emotionArray = emotions.split(',');
-      const emotionConditions = [];
+    // Add emotion filters if provided - fixed to handle empty strings and 'All' properly
+    if (emotions && emotions.length > 0) {
+      const emotionArray = emotions.split(',').filter(emotion => 
+        emotion && emotion.trim() !== '' && emotion.trim() !== 'All'
+      );
       
-      emotionArray.forEach(emotion => {
-        emotionConditions.push(`dominant_emotion = '${emotion}'`);
-      });
-      
-      if (emotionConditions.length > 0) {
-        sqlQuery += ` AND (${emotionConditions.join(' OR ')})`;
+      if (emotionArray.length > 0) {
+        const emotionConditions = emotionArray.map(emotion => {
+          // Create a condition where this emotion has significant presence
+          return `${emotion.toLowerCase()} > 0.5`;
+        });
+        
+        if (emotionConditions.length > 0) {
+          sqlQuery += ` AND (${emotionConditions.join(' OR ')})`;
+        }
       }
     }
 
@@ -364,7 +400,12 @@ router.get("/api/wordcloud-data", async (req, res, next) => {
 
     // Execute query
     const result = await db.query(sqlQuery, queryParams);
-    res.status(200).json(result.rows);
+    
+    // Add total records to response
+    res.status(200).json({
+      words: result.rows,
+      totalRecords: totalRecords
+    });
   } catch (err) {
     console.error(err);
     res.status(500).send("Internal Server Error");
