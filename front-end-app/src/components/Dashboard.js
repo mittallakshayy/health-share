@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Alert, Spinner } from 'react-bootstrap';
+import { Container, Row, Col, Alert, Spinner, Card } from 'react-bootstrap';
+import { FaChartPie, FaChartLine, FaTachometerAlt, FaInfoCircle } from 'react-icons/fa';
 import AdvancedSearch from './AdvancedSearch';
 import ComparisonView from './ComparisonView';
 import '../styles/ComparisonView.css';
@@ -77,42 +78,93 @@ const Dashboard = () => {
   };
 
   return (
-    <Container fluid className="mt-4 mb-5">
-      <Row>
-        <Col>
-          <h2 className="mb-4">Visual Analytics Dashboard</h2>
-          <p className="text-muted mb-4">
-            Analyze and compare health-related social media trends, emotions, and topics across different sources and time periods.
-          </p>
-          
-          <AdvancedSearch onSearch={handleSearch} />
-          
-          {error && (
-            <Alert variant="danger" className="mt-4 fade-in">
-              <Alert.Heading>Error</Alert.Heading>
-              <p>{error}</p>
-            </Alert>
-          )}
-          
-          {loading ? (
-            <div className="text-center p-5 fade-in">
-              <Spinner animation="border" role="status" variant="primary" style={{ width: '3rem', height: '3rem' }}>
-                <span className="visually-hidden">Loading...</span>
-              </Spinner>
-              <p className="mt-3 text-primary fw-bold">Processing your search request...</p>
-              <p className="text-muted">This may take a few moments depending on the amount of data.</p>
-            </div>
-          ) : searchPerformed && searchResults.length > 0 ? (
-            <ComparisonView searchResults={searchResults} />
-          ) : searchPerformed ? (
-            <Alert variant="info" className="mt-4 fade-in">
-              <Alert.Heading>No Results Found</Alert.Heading>
-              <p>Please try adjusting your search criteria or selecting different data sources.</p>
-            </Alert>
-          ) : null}
-        </Col>
-      </Row>
-    </Container>
+    <div className="dashboard-container">
+      {/* Dashboard Header */}
+      <div className="dashboard-header text-center">
+        <Container fluid>
+          <Row className="justify-content-center">
+            <Col xs={12} lg={10}>
+              <h2 className="dashboard-title">
+                <FaTachometerAlt className="me-2" /> Visual Analytics Dashboard
+              </h2>
+              <p className="dashboard-subtitle">
+                Analyze and compare health-related social media trends, emotions, and topics across different sources and time periods.
+              </p>
+            </Col>
+          </Row>
+        </Container>
+      </div>
+      
+      <Container fluid>
+        <Row className="justify-content-center">
+          <Col xs={12} lg={12}>
+            {/* Search Card with improved styling */}
+            <Card className="search-card mb-3 shadow-sm">
+              <Card.Header>
+                <div className="d-flex justify-content-between align-items-center">
+                  <h5 className="mb-0">
+                    <FaChartLine className="me-2" /> Advanced Search
+                  </h5>
+                  <div className="text-white small d-none d-md-block">
+                    <FaInfoCircle className="me-1" /> Configure your visualization parameters
+                  </div>
+                </div>
+              </Card.Header>
+              <Card.Body>
+                <AdvancedSearch onSearch={handleSearch} />
+              </Card.Body>
+            </Card>
+            
+            {/* Error display */}
+            {error && (
+              <Alert variant="danger" className="mt-3 fade-in">
+                <Alert.Heading>Error</Alert.Heading>
+                <p>{error}</p>
+              </Alert>
+            )}
+            
+            {/* Loading indicator */}
+            {loading ? (
+              <div className="text-center p-4 fade-in bg-light rounded shadow-sm mb-3">
+                <Spinner animation="border" role="status" variant="primary" style={{ width: '3rem', height: '3rem' }}>
+                  <span className="visually-hidden">Loading...</span>
+                </Spinner>
+                <p className="mt-3 text-primary fw-bold">Processing your search request...</p>
+                <p className="text-muted">This may take a few moments depending on the amount of data.</p>
+                
+                <div className="progress mt-3" style={{ height: '6px' }}>
+                  <div 
+                    className="progress-bar progress-bar-striped progress-bar-animated" 
+                    role="progressbar" 
+                    style={{ width: '100%' }}
+                    aria-valuenow="100" 
+                    aria-valuemin="0" 
+                    aria-valuemax="100"
+                  ></div>
+                </div>
+              </div>
+            ) : searchPerformed && searchResults.length > 0 ? (
+              <div className="slide-in">
+                <ComparisonView searchResults={searchResults} />
+              </div>
+            ) : searchPerformed ? (
+              <Alert variant="info" className="mt-3 fade-in">
+                <Alert.Heading>No Results Found</Alert.Heading>
+                <p>Please try adjusting your search criteria or selecting different data sources.</p>
+              </Alert>
+            ) : (
+              <div className="text-center p-4 bg-light rounded shadow-sm mt-3">
+                <FaChartPie size={40} className="text-secondary mb-3" />
+                <h4>Ready to Visualize</h4>
+                <p className="text-muted">
+                  Configure your search parameters above and click "Search & Visualize" to get started.
+                </p>
+              </div>
+            )}
+          </Col>
+        </Row>
+      </Container>
+    </div>
   );
 };
 

@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Card, Spinner, Alert, Badge } from 'react-bootstrap';
+import { Card, Spinner, Alert, Badge, ButtonGroup, Button, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import * as d3 from 'd3';
 import { emotionColors } from './emotionColors';
+import { FaSearchPlus, FaSearchMinus, FaUndo, FaInfoCircle, FaCalendarAlt } from 'react-icons/fa';
 
 const EmotionTimeline = ({ searchParams }) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -9,9 +10,17 @@ const EmotionTimeline = ({ searchParams }) => {
   const [data, setData] = useState([]);
   const [emotionList, setEmotionList] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [zoomTransform, setZoomTransform] = useState(null);
+  const [selectedTimeRange, setSelectedTimeRange] = useState(null);
+  const [brushExtent, setBrushExtent] = useState(null);
   
   const svgRef = useRef();
   const containerRef = useRef();
+  const chartRef = useRef(null);
+  const tooltipRef = useRef();
+  const brushRef = useRef();
+  const zoomRef = useRef();
   
   useEffect(() => {
     if (!searchParams) return;
@@ -78,6 +87,8 @@ const EmotionTimeline = ({ searchParams }) => {
         console.log("Processed timeline data:", processedData);
         
         setData(processedData);
+        setBrushExtent(null); // Reset brush when new data is loaded
+        setZoomTransform(null); // Reset zoom when new data is loaded
         
         // Filter out 'Mixed' from emotions if present
         const filteredEmotions = (result.emotions || []).filter(emotion => emotion !== 'Mixed');
@@ -103,6 +114,81 @@ const EmotionTimeline = ({ searchParams }) => {
     
     fetchEmotionTimeline();
   }, [searchParams]);
+  
+  // Handle zoom in button click
+  const handleZoomIn = () => {
+    if (chartRef.current && zoomRef.current) {
+      const newZoom = d3.zoomTransform(chartRef.current).scale(zoomLevel * 1.5);
+      d3.select(svgRef.current)
+        .transition()
+        .duration(300)
+        .call(zoomRef.current.transform, newZoom);
+      setZoomLevel(zoomLevel * 1.5);
+    }
+  };
+  
+  // Handle zoom out button click
+  const handleZoomOut = () => {
+    if (chartRef.current && zoomRef.current) {
+      const newZoom = d3.zoomTransform(chartRef.current).scale(Math.max(1, zoomLevel / 1.5));
+      d3.select(svgRef.current)
+        .transition()
+        .duration(300)
+        .call(zoomRef.current.transform, newZoom);
+      setZoomLevel(Math.max(1, zoomLevel / 1.5));
+    }
+  };
+  
+  // Handle reset zoom button click
+  const handleResetZoom = () => {
+    if (chartRef.current && zoomRef.current) {
+      d3.select(svgRef.current)
+        .transition()
+        .duration(300)
+        .call(zoomRef.current.transform, d3.zoomIdentity);
+      setZoomLevel(1);
+      setZoomTransform(null);
+      setBrushExtent(null);
+      
+      // Clear any brush selection
+      if (brushRef.current) {
+        d3.select(brushRef.current).call(d3.brushX().move, null);
+      }
+    }
+  };
+  
+  // Handle time range filter
+  const handleTimeRangeFilter = (days) => {
+    if (!data || data.length === 0) return;
+    
+    const sortedDates = [...data].sort((a, b) => new Date(a.date) - new Date(b.date));
+    const lastDate = new Date(sortedDates[sortedDates.length - 1].date);
+    const firstDate = days ? new Date(lastDate.getTime() - (days * 24 * 60 * 60 * 1000)) : new Date(sortedDates[0].date);
+    
+    setSelectedTimeRange(days);
+    
+    // Update the brush to reflect this time range
+    if (chartRef.current && brushRef.current && zoomRef.current) {
+      const x = d3.scaleTime()
+        .domain(d3.extent(data, d => new Date(d.date)))
+        .range([0, containerRef.current.clientWidth - 100]);
+      
+      // Clear current zoom
+      d3.select(svgRef.current)
+        .transition()
+        .duration(300)
+        .call(zoomRef.current.transform, d3.zoomIdentity);
+      
+      // Set brush selection
+      d3.select(brushRef.current)
+        .transition()
+        .duration(300)
+        .call(d3.brushX().move, [x(firstDate), x(lastDate)]);
+      
+      // Update brush extent
+      setBrushExtent([firstDate, lastDate]);
+    }
+  };
   
   // Draw the stream graph whenever data changes
   useEffect(() => {
@@ -139,22 +225,19 @@ const EmotionTimeline = ({ searchParams }) => {
     
     try {
       // Set up dimensions
-      const margin = { top: 50, right: 30, bottom: 50, left: 60 };
+      const margin = { top: 50, right: 30, bottom: 80, left: 60 };
       const containerWidth = containerRef.current.clientWidth;
       const width = containerWidth - margin.left - margin.right;
       const height = 400 - margin.top - margin.bottom;
       
-      // Create SVG with explicit width and height
+      // Create main SVG with explicit width and height
       const svg = d3.select(svgRef.current)
         .attr('width', width + margin.left + margin.right)
-        .attr('height', height + margin.top + margin.bottom)
-        .append('g')
-        .attr('transform', `translate(${margin.left}, ${margin.top})`);
+        .attr('height', height + margin.top + margin.bottom + 40); // Extra space for brush
       
       // Create tooltip div
-      const tooltip = d3.select('body')
-        .append('div')
-        .attr('class', 'emotion-timeline-tooltip')
+      const tooltip = d3.select(tooltipRef.current)
+        .classed('emotion-timeline-tooltip', true)
         .style('position', 'absolute')
         .style('visibility', 'hidden')
         .style('background-color', 'white')
@@ -164,10 +247,17 @@ const EmotionTimeline = ({ searchParams }) => {
         .style('box-shadow', '0 2px 12px rgba(0,0,0,0.15)')
         .style('z-index', '10000')
         .style('pointer-events', 'none')
-        .style('min-width', '180px')
+        .style('min-width', '200px')
         .style('font-size', '14px')
         .style('opacity', '0')
         .style('transition', 'opacity 0.2s');
+      
+      // Create a clip path to prevent drawing outside the chart area
+      svg.append("defs").append("clipPath")
+        .attr("id", "clip")
+        .append("rect")
+        .attr("width", width)
+        .attr("height", height);
       
       // Format data for d3 stack
       const formattedData = data.map(d => {
@@ -220,9 +310,19 @@ const EmotionTimeline = ({ searchParams }) => {
         throw new Error("Failed to create stack layout: " + err.message);
       }
       
-      // Set up scales
+      // Set up the main chart group with margin
+      const mainGroup = svg.append('g')
+        .attr('transform', `translate(${margin.left}, ${margin.top})`);
+      
+      // Reference for chart group to apply zoom
+      chartRef.current = mainGroup.node();
+      
+      // Find date extent from data
+      const dateExtent = d3.extent(formattedData, d => d.date);
+      
+      // Set up scales - use original width before zoom
       const x = d3.scaleTime()
-        .domain(d3.extent(formattedData, d => d.date))
+        .domain(brushExtent || dateExtent)
         .range([0, width]);
       
       // Find min and max values across all layers
@@ -237,6 +337,60 @@ const EmotionTimeline = ({ searchParams }) => {
         .domain(yExtent)
         .range([height, 0]);
       
+      // Create zoom behavior
+      const zoom = d3.zoom()
+        .scaleExtent([1, 15]) // Limit zoom scale
+        .translateExtent([[0, 0], [width, height]]) // Limit pan area
+        .extent([[0, 0], [width, height]])
+        .on("zoom", (event) => {
+          // Prevent default to avoid triggering page scroll
+          event.sourceEvent && event.sourceEvent.preventDefault();
+          
+          // Update the zoom level state
+          setZoomLevel(event.transform.k);
+          setZoomTransform(event.transform);
+          
+          // Get the new scale after zoom
+          const newX = event.transform.rescaleX(x);
+          
+          // Update the x-axis with new scale
+          mainGroup.select(".x-axis").call(d3.axisBottom(newX).ticks(10));
+          
+          // Update all area paths
+          mainGroup.selectAll(".layer")
+            .attr("d", d3.area()
+              .x(d => newX(d.data.date))
+              .y0(d => y(d[0]))
+              .y1(d => y(d[1]))
+              .curve(d3.curveBasis));
+        });
+      
+      // Store zoom behavior reference
+      zoomRef.current = zoom;
+      
+      // Add zoom behavior to the svg - ensure we're capturing all events
+      svg.call(zoom)
+        .on("wheel.zoom", null) // Disable wheel to prevent conflicts with page scroll
+        .call(zoom.filter(event => {
+          // Only allow zooming with explicit zoom buttons or mousedown (pan)
+          return !event.button && 
+                 (event.type === 'mousedown' || event.type === 'touchstart');
+        }));
+      
+      // Add an invisible overlay to capture pan events
+      mainGroup.append("rect")
+        .attr("class", "zoom-overlay")
+        .attr("width", width)
+        .attr("height", height)
+        .attr("fill", "none")
+        .attr("pointer-events", "all")
+        .call(zoom);
+      
+      // Apply previous transform if any
+      if (zoomTransform) {
+        svg.call(zoom.transform, zoomTransform);
+      }
+      
       // Create area generator
       const area = d3.area()
         .x(d => x(d.data.date))
@@ -245,13 +399,13 @@ const EmotionTimeline = ({ searchParams }) => {
         .curve(d3.curveBasis); // Smooth curves
       
       // Draw background for contrast
-      svg.append("rect")
+      mainGroup.append("rect")
         .attr("width", width)
         .attr("height", height)
         .attr("fill", "#f8f9fa");
       
       // Draw areas for each emotion
-      svg.selectAll(".layer")
+      mainGroup.selectAll(".layer")
         .data(layers)
         .enter()
         .append("path")
@@ -261,6 +415,7 @@ const EmotionTimeline = ({ searchParams }) => {
         .style("opacity", 0.8)
         .style("stroke", "#fff")
         .style("stroke-width", 0.1)
+        .attr("clip-path", "url(#clip)") // Apply clip path to prevent drawing outside
         .on("mouseover", function(event, d) {
           d3.select(this)
             .style("opacity", 1)
@@ -273,8 +428,11 @@ const EmotionTimeline = ({ searchParams }) => {
             .html(`<div style="font-weight: bold; color: ${emotionColors[d.key]};">${d.key}</div>`);
         })
         .on("mousemove", function(event, d) {
+          // Get the zoom-adjusted x scale
+          const currentX = zoomTransform ? zoomTransform.rescaleX(x) : x;
+          
           // Find the data point closest to the mouse position
-          const xPos = x.invert(d3.pointer(event, this)[0]);
+          const xPos = currentX.invert(d3.pointer(event, this)[0]);
           const bisectDate = d3.bisector(d => d.date).left;
           const index = bisectDate(formattedData, xPos, 1);
           
@@ -296,14 +454,32 @@ const EmotionTimeline = ({ searchParams }) => {
           const dateFormatter = d3.timeFormat("%b %d, %Y");
           const date = dateFormatter(dataPoint.date);
           
+          // Enhanced tooltip with more emotion context
           tooltip
             .html(
-              `<div style="font-weight: bold; color: ${emotionColors[d.key]};">
-                ${d.key}
+              `<div class="tooltip-header" style="
+                font-weight: bold; 
+                color: white; 
+                background-color: ${emotionColors[d.key]}; 
+                padding: 4px 8px; 
+                margin: -10px -10px 8px -10px; 
+                border-radius: 4px 4px 0 0;
+              ">
+                ${d.key} (${date})
               </div>
-              <div>Date: ${date}</div>
-              <div>Count: ${count}</div>
-              <div>Percentage: ${totalCount > 0 ? (count / totalCount * 100).toFixed(1) : 0}%</div>`
+              <div class="tooltip-content">
+                <div><strong>Count:</strong> ${count}</div>
+                <div><strong>Percentage:</strong> ${totalCount > 0 ? (count / totalCount * 100).toFixed(1) : 0}%</div>
+              </div>
+              <div class="tooltip-footer" style="
+                margin-top: 8px;
+                padding-top: 6px;
+                border-top: 1px solid #eee;
+                font-size: 11px;
+                color: #666;
+              ">
+                Hover over other areas to explore or use zoom controls
+              </div>`
             )
             .style('left', `${event.pageX + 15}px`)
             .style('top', `${event.pageY - 30}px`);
@@ -320,17 +496,93 @@ const EmotionTimeline = ({ searchParams }) => {
         });
       
       // Add x-axis at the bottom
-      svg.append("g")
+      mainGroup.append("g")
+        .attr("class", "x-axis")
         .attr("transform", `translate(0, ${height})`)
-        .call(d3.axisBottom(x));
+        .call(d3.axisBottom(x).ticks(Math.min(formattedData.length, 7)));
+      
+      // Add y-axis
+      mainGroup.append("g")
+        .attr("class", "y-axis")
+        .call(d3.axisLeft(y).ticks(5));
       
       // Add axis labels
-      svg.append("text")
+      mainGroup.append("text")
         .attr("text-anchor", "middle")
         .attr("x", width / 2)
         .attr("y", height + margin.bottom - 5)
         .style("font-size", "12px")
         .text("Date");
+      
+      // Create brush for range selection
+      const brushArea = svg.append("g")
+        .attr("class", "brush")
+        .attr("transform", `translate(${margin.left}, ${height + margin.top + 20})`)
+        .on("click", function(event) {
+          if (event.defaultPrevented) return; // Click originated from a brush
+        });
+        
+      // Store brush reference
+      brushRef.current = brushArea.node();
+      
+      // Create a mini x-axis for the brush
+      const miniX = d3.scaleTime()
+        .domain(dateExtent)
+        .range([0, width]);
+        
+      // Add mini axis for the brush
+      brushArea.append("g")
+        .attr("class", "mini-axis")
+        .call(d3.axisBottom(miniX).ticks(5));
+        
+      // Create brush behavior
+      const brush = d3.brushX()
+        .extent([[0, -20], [width, 20]])
+        .on("start", (event) => {
+          // Prevent event propagation to avoid zoom conflicts
+          if (event.sourceEvent) event.sourceEvent.stopPropagation();
+        })
+        .on("end", (event) => {
+          // Prevent default to avoid triggering page scroll
+          if (event.sourceEvent) event.sourceEvent.preventDefault();
+          
+          if (!event.selection) return;
+          
+          // Get the brush selection in domain units (dates)
+          const [x0, x1] = event.selection.map(miniX.invert);
+          
+          // Update the x domain to zoom to selected area
+          x.domain([x0, x1]);
+          
+          // Store brush extent
+          setBrushExtent([x0, x1]);
+          
+          // Clear time range selection if we're using the brush directly
+          setSelectedTimeRange(null);
+          
+          // Reset zoom transform and apply new scale
+          svg.call(zoom.transform, d3.zoomIdentity);
+          
+          // Update the x-axis with new domain
+          mainGroup.select(".x-axis")
+            .transition()
+            .duration(500)
+            .call(d3.axisBottom(x).ticks(5));
+          
+          // Update all area paths with the new domain
+          mainGroup.selectAll(".layer")
+            .transition()
+            .duration(500)
+            .attr("d", area);
+        });
+        
+      // Apply brush to the brush area
+      brushArea.call(brush);
+      
+      // If we have a saved brush extent, apply it
+      if (brushExtent) {
+        brushArea.call(brush.move, brushExtent.map(miniX));
+      }
       
     } catch (err) {
       console.error("Error rendering stream graph:", err);
@@ -351,7 +603,7 @@ const EmotionTimeline = ({ searchParams }) => {
     return () => {
       d3.selectAll(".emotion-timeline-tooltip").remove();
     };
-  }, [data, emotionList, totalCount]);
+  }, [data, emotionList, totalCount, brushExtent, zoomTransform]);
   
   // Render the color legend
   const renderColorLegend = () => {
@@ -380,15 +632,86 @@ const EmotionTimeline = ({ searchParams }) => {
     );
   };
   
+  // Render zoom controls
+  const renderZoomControls = () => {
+    return (
+      <div className="zoom-controls d-flex align-items-center mb-3">
+        <ButtonGroup size="sm" className="me-3">
+          <Button variant="outline-secondary" onClick={handleZoomIn} title="Zoom In">
+            <FaSearchPlus />
+          </Button>
+          <Button variant="outline-secondary" onClick={handleZoomOut} title="Zoom Out">
+            <FaSearchMinus />
+          </Button>
+          <Button variant="outline-secondary" onClick={handleResetZoom} title="Reset View">
+            <FaUndo />
+          </Button>
+        </ButtonGroup>
+        
+        <ButtonGroup size="sm" className="me-3">
+          <Button 
+            variant={selectedTimeRange === 7 ? "primary" : "outline-secondary"} 
+            onClick={() => handleTimeRangeFilter(7)}
+          >
+            7 Days
+          </Button>
+          <Button 
+            variant={selectedTimeRange === 30 ? "primary" : "outline-secondary"} 
+            onClick={() => handleTimeRangeFilter(30)}
+          >
+            30 Days
+          </Button>
+          <Button 
+            variant={selectedTimeRange === 90 ? "primary" : "outline-secondary"} 
+            onClick={() => handleTimeRangeFilter(90)}
+          >
+            90 Days
+          </Button>
+          <Button 
+            variant={selectedTimeRange === null && !brushExtent ? "primary" : "outline-secondary"} 
+            onClick={() => handleTimeRangeFilter(null)}
+          >
+            All
+          </Button>
+        </ButtonGroup>
+        
+        <OverlayTrigger
+          placement="right"
+          overlay={
+            <Tooltip>
+              <strong>Zoom Controls:</strong> Use buttons to zoom in/out or select a time range.<br/>
+              <strong>Brush Selection:</strong> Drag below the chart to select a time range.<br/>
+              <strong>Pan:</strong> Click and drag the chart area to move around when zoomed.
+            </Tooltip>
+          }
+        >
+          <Button variant="link" className="text-muted p-0">
+            <FaInfoCircle />
+          </Button>
+        </OverlayTrigger>
+      </div>
+    );
+  };
+  
   // Check for window resize to make the chart responsive
   useEffect(() => {
     const handleResize = () => {
       // Re-render chart on window resize
       if (data.length > 0 && emotionList.length > 0) {
-        // Re-trigger the chart drawing effect
+        // Re-trigger the chart drawing effect while maintaining current zoom
         const tempData = [...data];
+        const tempBrushExtent = brushExtent;
+        const tempZoomTransform = zoomTransform;
+        
+        // Preserve state before redrawing
         setData([]);
-        setTimeout(() => setData(tempData), 10);
+        
+        // Redraw and restore state
+        setTimeout(() => {
+          setData(tempData);
+          setBrushExtent(tempBrushExtent);
+          setZoomTransform(tempZoomTransform);
+        }, 10);
       }
     };
 
@@ -397,7 +720,7 @@ const EmotionTimeline = ({ searchParams }) => {
     return () => {
       window.removeEventListener('resize', handleResize);
     };
-  }, [data, emotionList]);
+  }, [data, emotionList, brushExtent, zoomTransform]);
   
   return (
     <Card>
@@ -425,23 +748,33 @@ const EmotionTimeline = ({ searchParams }) => {
           <Alert variant="info">No timeline data available. Try adjusting your search criteria.</Alert>
         ) : (
           <>
-            <Alert variant="info" className="mb-3">
-              <strong>How to use:</strong> Hover over the colored areas to see emotion details for specific dates.
-              The height of each colored section represents the number of texts with that maximum emotion on a given day.
+            <Alert variant="info" className="mb-3 d-flex align-items-center">
+              <FaCalendarAlt className="me-2 fs-4" />
+              <div>
+                <strong>Interactive Timeline:</strong> Hover over the colored areas to see details.
+                <br />
+                <span className="text-muted">Use the controls below to zoom, pan, and filter the timeline.</span>
+              </div>
             </Alert>
+            
+            {/* Zoom and time range controls */}
+            {renderZoomControls()}
+            
+            {/* Chart container */}
             <div className="d-flex justify-content-center mb-3" style={{ width: '100%' }}>
               <div 
                 ref={containerRef} 
-                className="position-relative" 
+                className="position-relative timeline-container" 
                 style={{ 
                   width: '100%', 
-                  height: '450px',
+                  height: '500px',
                   margin: '0 auto',
-                  overflow: 'visible',
+                  overflow: 'hidden', /* Changed from 'visible' to 'hidden' */
                   backgroundColor: '#f8f9fa',
                   border: '1px solid #ddd',
                   borderRadius: '4px',
-                  padding: '10px'
+                  padding: '10px',
+                  touchAction: 'none' /* Prevent browser touch actions */
                 }}
               >
                 <svg 
@@ -449,9 +782,11 @@ const EmotionTimeline = ({ searchParams }) => {
                   style={{ 
                     width: '100%', 
                     height: '100%', 
-                    display: 'block'
+                    display: 'block',
+                    touchAction: 'none' /* Prevent browser touch actions */
                   }}
                 ></svg>
+                <div ref={tooltipRef}></div>
               </div>
             </div>
             

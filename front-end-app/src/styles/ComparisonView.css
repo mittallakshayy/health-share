@@ -1,25 +1,49 @@
+:root {
+  --primary: #58afe2;
+  --primary-dark: #4299cb;
+  --primary-light: #7cc3ed;
+  --secondary: #5c68a3;
+  --gray-light: #dee2e6;
+  --gray-lighter: #f2f2f2;
+  --text-light: #ffffff;
+  --text-dark: #212529;
+  --text-secondary: #6c757d;
+  --border-radius: 0.5rem;
+  --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  --transition-medium: all 0.3s ease;
+}
+
 .comparison-card {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-medium);
   overflow: hidden;
   height: 100%;
   display: flex;
   flex-direction: column;
+  border-radius: var(--border-radius);
+  border: none;
+  background-color: #fff;
 }
 
 .comparison-card-wrapper {
   height: 100%;
-  min-height: 500px;
+  min-height: 450px;
+  margin-bottom: 1rem;
+  width: 100%;
 }
 
 .comparison-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-md);
 }
 
 .comparison-card .card-header {
   border-bottom: none;
   padding: 0.75rem 1rem;
+  background-color: var(--primary);
+  color: var(--text-light);
+  border-radius: var(--border-radius) var(--border-radius) 0 0;
 }
 
 .comparison-card .card-body {
@@ -32,23 +56,27 @@
 
 /* Card body containers for specific visualizations */
 .pie-chart-container {
-  height: 500px;
+  height: 450px;
   overflow: visible;
+  padding: 0.75rem;
 }
 
 .word-cloud-container {
-  height: 500px;
+  height: 450px;
   overflow: visible;
+  padding: 0.75rem;
 }
 
 .spider-wheel-container {
-  height: 500px;
+  height: 450px;
   overflow: visible;
+  padding: 0.75rem;
 }
 
 .timeline-container {
-  min-height: 500px;
+  min-height: 450px;
   overflow: visible;
+  padding: 0.75rem;
 }
 
 /* Override default card styles within visualization components */
@@ -72,17 +100,117 @@
 }
 
 .comparison-section {
-  margin-bottom: 2rem;
-  padding-bottom: 2rem;
-  border-bottom: 1px solid #eee;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--gray-light);
 }
 
 .comparison-section-title {
   margin-bottom: 1.5rem;
-  padding-left: 0.5rem;
-  border-left: 4px solid #007bff;
-  color: #333;
+  padding-left: 0.75rem;
+  border-left: 4px solid var(--primary);
+  color: var(--text-dark);
   font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
+.comparison-section-title::before {
+  content: '';
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 8px;
+  background-color: var(--primary);
+  border-radius: 50%;
+}
+
+/* Dashboard header styling */
+.dashboard-header {
+  padding: 2rem 0;
+  margin-bottom: 2rem;
+  background-color: var(--gray-lighter);
+  border-radius: var(--border-radius);
+}
+
+.dashboard-title {
+  color: var(--primary-dark);
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.dashboard-subtitle {
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+/* Advanced search card styling */
+.search-card {
+  border-radius: var(--border-radius);
+  border: none;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 2rem;
+  overflow: hidden;
+}
+
+.search-card .card-header {
+  background-color: var(--primary);
+  border-bottom: none;
+  color: white;
+}
+
+.search-card .card-body {
+  padding: 1.5rem;
+}
+
+/* Tab styling for comparison */
+.comparison-tabs .nav-link {
+  color: var(--text-secondary);
+  border-radius: 0;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+}
+
+.comparison-tabs .nav-link.active {
+  color: var(--primary);
+  background-color: transparent;
+  border-bottom: 3px solid var(--primary);
+}
+
+/* Badge styling */
+.emotion-badges-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.emotion-badge {
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-weight: 500;
+  transition: var(--transition-medium);
+  margin: 0;
+  font-size: 0.85rem;
+  border: 1px solid transparent;
+}
+
+.emotion-badge.selected {
+  background-color: var(--primary) !important;
+  color: white !important;
+  border-color: var(--primary);
+}
+
+.emotion-badge:not(.selected) {
+  background-color: #f8f9fa !important;
+  color: var(--text-dark) !important;
+  border-color: var(--gray-light);
+}
+
+.emotion-badge:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
 }
 
 /* Make responsive adjustments for smaller screens */
@@ -98,17 +226,25 @@
   .pie-chart-container,
   .word-cloud-container,
   .spider-wheel-container {
-    height: 400px;
+    height: 380px;
+  }
+  
+  .dashboard-header {
+    padding: 1rem 0;
+  }
+  
+  .comparison-section-title {
+    font-size: 1.1rem;
   }
 }
 
 /* Tooltip styles for comparison charts */
 .comparison-tooltip {
   background-color: rgba(255, 255, 255, 0.95) !important;
-  border: 1px solid #ddd !important;
-  border-radius: 4px !important;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1) !important;
-  padding: 10px !important;
+  border: 1px solid var(--gray-light) !important;
+  border-radius: var(--border-radius) !important;
+  box-shadow: var(--shadow-sm) !important;
+  padding: 12px !important;
   font-size: 13px !important;
   min-width: 200px !important;
   z-index: 1000 !important;
@@ -124,8 +260,329 @@
   animation: fadeIn 0.5s ease-in;
 }
 
+@keyframes slideInFromRight {
+  from { 
+    transform: translateX(20px);
+    opacity: 0;
+  }
+  to { 
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.slide-in {
+  animation: slideInFromRight 0.3s ease-out;
+}
+
 /* Fix for D3 visualizations */
 .comparison-card .card-body > div > .card > .card-body {
   padding: 0;
   min-height: 400px;
+}
+
+/* Date picker custom styling */
+.custom-datepicker-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  cursor: pointer;
+}
+
+.custom-datepicker-input input {
+  padding-right: 40px;
+  width: 100%;
+  height: 38px;
+  cursor: pointer;
+}
+
+.datepicker-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--primary);
+  pointer-events: none;
+}
+
+.react-datepicker-wrapper {
+  width: 100%;
+  display: block;
+}
+
+.react-datepicker__input-container {
+  width: 100%;
+  display: block;
+}
+
+.react-datepicker {
+  font-family: inherit;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--gray-light);
+  box-shadow: var(--shadow-sm);
+}
+
+.react-datepicker__header {
+  background-color: var(--primary-light);
+  border-bottom: none;
+}
+
+.react-datepicker__current-month, 
+.react-datepicker-time__header,
+.react-datepicker-year-header {
+  color: white;
+}
+
+.react-datepicker__day--selected, 
+.react-datepicker__day--in-selecting-range, 
+.react-datepicker__day--in-range,
+.react-datepicker__day--keyboard-selected {
+  background-color: var(--primary);
+}
+
+.react-datepicker__day:hover {
+  background-color: var(--primary-light);
+}
+
+/* Form switch styling */
+.form-check-input:checked {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+.form-check-input:focus {
+  border-color: var(--primary-light);
+  box-shadow: 0 0 0 0.25rem rgba(88, 175, 226, 0.25);
+}
+
+/* Search form styling */
+.form-control:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 0.25rem rgba(88, 175, 226, 0.25);
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+.btn-primary:hover,
+.btn-primary:active,
+.btn-primary:focus {
+  background-color: var(--primary-dark) !important;
+  border-color: var(--primary-dark) !important;
+}
+
+.btn-outline-primary {
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:active,
+.btn-outline-primary:focus {
+  background-color: var(--primary) !important;
+  border-color: var(--primary) !important;
+  color: white !important;
+}
+
+/* Mobile visualization selector styling */
+.viz-selector-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 8px;
+  border-radius: var(--border-radius);
+  color: var(--text-secondary);
+  transition: var(--transition-medium);
+}
+
+.viz-selector-btn span {
+  font-size: 12px;
+  margin-top: 5px;
+}
+
+.viz-selector-btn.active {
+  background-color: var(--primary-light);
+  color: var(--text-light);
+}
+
+.viz-selector-btn:hover {
+  background-color: var(--gray-light);
+  transform: translateY(-2px);
+}
+
+.viz-selector-btn.active:hover {
+  background-color: var(--primary);
+}
+
+/* Accessibility improvements */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Add focus styles for better keyboard navigation */
+:focus {
+  outline: 2px solid var(--primary) !important;
+  outline-offset: 2px !important;
+}
+
+/* Enhanced card animations */
+@keyframes cardEntrance {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.comparison-card {
+  animation: cardEntrance 0.3s ease-out;
+  animation-fill-mode: both;
+}
+
+.comparison-card:nth-child(1) { animation-delay: 0.1s; }
+.comparison-card:nth-child(2) { animation-delay: 0.2s; }
+.comparison-card:nth-child(3) { animation-delay: 0.3s; }
+.comparison-card:nth-child(4) { animation-delay: 0.4s; }
+
+/* Make the charts more responsive and improved interaction */
+@media (max-width: 992px) {
+  .comparison-section-title {
+    font-size: 1.1rem;
+  }
+  
+  .dashboard-header {
+    padding: 1rem 0;
+  }
+  
+  .dashboard-title {
+    font-size: 1.5rem;
+  }
+}
+
+/* Print styles for better report generation */
+@media print {
+  .comparison-card {
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+    break-inside: avoid;
+  }
+  
+  .comparison-card-wrapper {
+    page-break-inside: avoid;
+  }
+  
+  .comparison-section {
+    page-break-after: always;
+  }
+  
+  .dashboard-header,
+  .search-card,
+  .form-check-input,
+  button {
+    display: none !important;
+  }
+}
+
+/* Optimize space in comparison mode */
+.comparison-card-wrapper {
+  height: 100%;
+  min-height: 450px;
+  margin-bottom: 1rem;
+  width: 100%;
+}
+
+/* Optimize grid layout */
+.g-4 {
+  --bs-gutter-x: 1rem;
+  --bs-gutter-y: 1rem;
+}
+
+/* Full width utilization for main component */
+.dashboard-container {
+  width: 100%;
+  max-width: 100%;
+  padding: 0;
+}
+
+.container-fluid {
+  max-width: 100%;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+/* Fix charts alignment */
+.comparison-card .card-body > div.card-body {
+  padding: 0 !important;
+  height: 100%;
+}
+
+/* Improved card styling for better space utilization */
+.comparison-card {
+  height: 100%;
+  margin: 0;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Improve tabs for comparison mode */
+.comparison-tabs {
+  margin-bottom: 1rem !important;
+}
+
+/* Optimize padding for form elements */
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.card-body {
+  padding: 1rem;
+}
+
+/* Make buttons more compact */
+.btn {
+  padding: 0.375rem 0.75rem;
+}
+
+.btn-lg {
+  padding: 0.5rem 1rem;
+}
+
+@media (max-width: 768px) {
+  .comparison-card-wrapper {
+    min-height: 400px;
+  }
+  
+  .pie-chart-container,
+  .word-cloud-container,
+  .spider-wheel-container {
+    height: 380px;
+  }
+  
+  .dashboard-header {
+    padding: 1rem 0;
+  }
+  
+  .comparison-section-title {
+    font-size: 1.1rem;
+  }
+  
+  .container-fluid {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
 } 

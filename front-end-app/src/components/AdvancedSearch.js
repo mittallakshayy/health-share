@@ -3,7 +3,7 @@ import { Form, Button, ToggleButtonGroup, ToggleButton, Badge, ButtonGroup, Tab,
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import Select from 'react-select';
-import { FaPlus, FaTrash, FaSyncAlt, FaChartBar } from 'react-icons/fa';
+import { FaPlus, FaTrash, FaSyncAlt, FaChartBar, FaCalendarAlt, FaDatabase, FaSmile, FaTag, FaRobot, FaInfoCircle } from 'react-icons/fa';
 
 const sourceOptions = [
   { value: 'Twitter', label: 'Twitter' },
@@ -11,6 +11,62 @@ const sourceOptions = [
   { value: 'Medium', label: 'Medium' },
 ];
 const emotionOptions = ['All', 'Anger', 'Anticipation', 'Disgust', 'Fear', 'Joy', 'Sadness', 'Surprise', 'Trust'];
+
+// Custom styling for react-select
+const selectStyles = {
+  control: (provided, state) => ({
+    ...provided,
+    borderColor: state.isFocused ? '#58afe2' : provided.borderColor,
+    boxShadow: state.isFocused ? '0 0 0 0.25rem rgba(88, 175, 226, 0.25)' : provided.boxShadow,
+    '&:hover': {
+      borderColor: state.isFocused ? '#58afe2' : '#ced4da',
+    },
+  }),
+  multiValue: (provided) => ({
+    ...provided,
+    backgroundColor: '#e9f4fb',
+  }),
+  multiValueLabel: (provided) => ({
+    ...provided,
+    color: '#1e88e5',
+  }),
+  multiValueRemove: (provided) => ({
+    ...provided,
+    color: '#1e88e5',
+    '&:hover': {
+      backgroundColor: '#58afe2',
+      color: 'white',
+    },
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    backgroundColor: state.isSelected 
+      ? '#58afe2' 
+      : state.isFocused 
+        ? '#e9f4fb' 
+        : provided.backgroundColor,
+    color: state.isSelected ? 'white' : provided.color,
+    '&:active': {
+      backgroundColor: '#58afe2',
+      color: 'white'
+    }
+  }),
+};
+
+// Custom styles for DatePicker
+const CustomDatePickerInput = React.forwardRef(({ value, onClick, placeholder, onChange }, ref) => (
+  <div className="custom-datepicker-input" onClick={onClick}>
+    <input
+      type="text"
+      className="form-control"
+      value={value || ''}
+      placeholder={placeholder}
+      onChange={onChange}
+      ref={ref}
+    />
+    <FaCalendarAlt className="datepicker-icon" />
+  </div>
+));
 
 // Initial search query template
 const initialSearchQuery = {
@@ -157,114 +213,125 @@ const AdvancedSearch = ({ onSearch }) => {
   };
 
   return (
-    <Card className="mb-4 shadow-sm">
-      <Card.Header className="bg-primary text-white d-flex justify-content-between align-items-center">
-        <h5 className="mb-0">Advanced Search</h5>
-        <Form.Check
-          type="switch"
-          id="comparison-mode"
-          label="Comparison Mode"
-          checked={comparisonMode}
-          onChange={toggleComparisonMode}
-          className="text-white"
-        />
-      </Card.Header>
-      <Card.Body>
-        <Form onSubmit={handleSubmit}>
-          {comparisonMode ? (
-            <>
-              <div className="mb-3 d-flex align-items-center">
-                <h6 className="mb-0 me-3">Comparison Queries</h6>
-                <OverlayTrigger
-                  placement="top"
-                  overlay={<Tooltip>Add comparison query</Tooltip>}
-                >
-                  <Button 
-                    variant="outline-primary" 
-                    size="sm" 
-                    onClick={addComparisonTab} 
-                    className="me-2"
-                  >
-                    <FaPlus /> Add Query
-                  </Button>
-                </OverlayTrigger>
-              </div>
-            
-              <Tabs
-                activeKey={activeTab}
-                onSelect={(k) => setActiveTab(Number(k))}
-                className="mb-4"
+    <Form onSubmit={handleSubmit}>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <div className="form-check form-switch">
+          <input
+            className="form-check-input"
+            type="checkbox"
+            id="comparison-mode"
+            checked={comparisonMode}
+            onChange={toggleComparisonMode}
+          />
+          <label className="form-check-label ms-2" htmlFor="comparison-mode">
+            <span className="fw-medium">Comparison Mode</span>
+            {comparisonMode && <span className="text-muted ms-2">(Compare multiple queries side by side)</span>}
+          </label>
+        </div>
+      </div>
+      
+      {comparisonMode ? (
+        <>
+          <div className="mb-3 d-flex align-items-center">
+            <h6 className="mb-0 me-3 d-flex align-items-center">
+              <FaDatabase className="me-2" />
+              Comparison Queries
+            </h6>
+            <OverlayTrigger
+              placement="top"
+              overlay={<Tooltip>Add new comparison query</Tooltip>}
+            >
+              <Button 
+                variant="outline-primary" 
+                size="sm" 
+                onClick={addComparisonTab} 
+                className="me-2"
               >
-                {searchQueries.map((query, index) => (
-                  <Tab 
-                    key={index} 
-                    eventKey={index} 
-                    title={
-                      <div className="d-flex align-items-center">
-                        <span className="me-2">{query.label}</span>
-                        {index > 0 && (
-                          <Button 
-                            variant="link" 
-                            size="sm" 
-                            className="p-0 text-danger"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              removeComparisonTab(index);
-                            }}
-                          >
-                            <FaTrash />
-                          </Button>
-                        )}
-                      </div>
-                    }
-                  >
-                    <Card className="border-0">
-                      <Card.Body>
-                        <Form.Group controlId={`queryLabel-${index}`} className="mb-3">
-                          <Form.Label>Query Label</Form.Label>
-                          <Form.Control
-                            type="text"
-                            placeholder="Enter a descriptive label"
-                            value={query.label}
-                            onChange={(e) => handleLabelChange(e, index)}
-                          />
-                        </Form.Group>
-                        
-                        <SearchQueryForm 
-                          query={query} 
-                          index={index}
-                          handleSourceChange={handleSourceChange}
-                          handleEmotionChange={handleEmotionChange}
-                          handleDateChange={handleDateChange}
-                          handleAiInsightsChange={handleAiInsightsChange}
-                        />
-                      </Card.Body>
-                    </Card>
-                  </Tab>
-                ))}
-              </Tabs>
-            </>
-          ) : (
-            <SearchQueryForm 
-              query={searchQueries[0]} 
-              index={0}
-              handleSourceChange={handleSourceChange}
-              handleEmotionChange={handleEmotionChange}
-              handleDateChange={handleDateChange}
-              handleAiInsightsChange={handleAiInsightsChange}
-            />
-          )}
-
-          {/* Search Button */}
-          <div className="d-grid gap-2 mt-4">
-            <Button variant="primary" type="submit" className="d-flex align-items-center justify-content-center">
-              <FaChartBar className="me-2" />
-              {comparisonMode ? 'Compare & Visualize' : 'Search & Visualize'}
-            </Button>
+                <FaPlus /> Add Query
+              </Button>
+            </OverlayTrigger>
           </div>
-        </Form>
-      </Card.Body>
-    </Card>
+        
+          <Tabs
+            activeKey={activeTab}
+            onSelect={(k) => setActiveTab(Number(k))}
+            className="mb-4 comparison-tabs"
+          >
+            {searchQueries.map((query, index) => (
+              <Tab 
+                key={index} 
+                eventKey={index} 
+                title={
+                  <div className="d-flex align-items-center">
+                    <span className="me-2">{query.label}</span>
+                    {index > 0 && (
+                      <Button 
+                        variant="link" 
+                        size="sm" 
+                        className="p-0 text-danger"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeComparisonTab(index);
+                        }}
+                      >
+                        <FaTrash />
+                      </Button>
+                    )}
+                  </div>
+                }
+              >
+                <Card className="border-0 shadow-sm rounded">
+                  <Card.Body className="p-4">
+                    <Form.Group controlId={`queryLabel-${index}`} className="mb-3">
+                      <Form.Label className="d-flex align-items-center">
+                        <FaTag className="me-2" /> Query Label
+                      </Form.Label>
+                      <Form.Control
+                        type="text"
+                        placeholder="Enter a descriptive label"
+                        value={query.label}
+                        onChange={(e) => handleLabelChange(e, index)}
+                      />
+                    </Form.Group>
+                    
+                    <SearchQueryForm 
+                      query={query} 
+                      index={index}
+                      handleSourceChange={handleSourceChange}
+                      handleEmotionChange={handleEmotionChange}
+                      handleDateChange={handleDateChange}
+                      handleAiInsightsChange={handleAiInsightsChange}
+                    />
+                  </Card.Body>
+                </Card>
+              </Tab>
+            ))}
+          </Tabs>
+        </>
+      ) : (
+        <SearchQueryForm 
+          query={searchQueries[0]} 
+          index={0}
+          handleSourceChange={handleSourceChange}
+          handleEmotionChange={handleEmotionChange}
+          handleDateChange={handleDateChange}
+          handleAiInsightsChange={handleAiInsightsChange}
+        />
+      )}
+
+      {/* Search Button */}
+      <div className="d-grid gap-2 mt-4">
+        <Button 
+          variant="primary" 
+          type="submit" 
+          className="d-flex align-items-center justify-content-center py-2"
+          size="lg"
+        >
+          <FaChartBar className="me-2" />
+          {comparisonMode ? 'Compare & Visualize' : 'Search & Visualize'}
+        </Button>
+      </div>
+    </Form>
   );
 };
 
@@ -278,65 +345,126 @@ const SearchQueryForm = ({
   handleAiInsightsChange 
 }) => {
   return (
-    <>
-      <Form.Group controlId={`source-${index}`} className="mb-3">
-        <Form.Label>Source</Form.Label>
-        <Select
-          isMulti
-          options={sourceOptions}
-          value={query.selectedSources}
-          onChange={(options) => handleSourceChange(options, index)}
-          className="mt-1"
-          classNamePrefix="react-select"
-          placeholder="Select data sources"
-        />
-      </Form.Group>
-
-      <Form.Group controlId={`dateRange-${index}`} className="mb-3">
-        <Form.Label>Date Range</Form.Label>
-        <div className="d-flex align-items-center">
-          <DatePicker
-            selected={query.startDate}
-            onChange={(date) => handleDateChange(date, 'startDate', index)}
-            placeholderText="Start Date"
-            className="form-control me-2"
+    <Row>
+      <Col md={6}>
+        <Form.Group controlId={`source-${index}`} className="mb-3">
+          <Form.Label className="d-flex align-items-center">
+            <FaDatabase className="me-2" /> Data Source
+          </Form.Label>
+          <Select
+            isMulti
+            options={sourceOptions}
+            value={query.selectedSources}
+            onChange={(options) => handleSourceChange(options, index)}
+            className="mt-1"
+            classNamePrefix="react-select"
+            placeholder="Select data sources"
+            styles={selectStyles}
           />
-          <DatePicker
-            selected={query.endDate}
-            onChange={(date) => handleDateChange(date, 'endDate', index)}
-            placeholderText="End Date"
-            className="form-control"
-          />
-        </div>
-      </Form.Group>
+          <Form.Text className="text-muted">
+            Select one or more data sources to analyze
+          </Form.Text>
+        </Form.Group>
 
-      <Form.Group controlId={`aiInsights-${index}`} className="mb-3">
-        <Form.Label>AI Insights</Form.Label>
-        <Form.Check
-          type="switch"
-          label="Enable"
-          checked={query.aiInsights}
-          onChange={() => handleAiInsightsChange(index)}
-        />
-      </Form.Group>
+        <Form.Group controlId={`dateRange-${index}`} className="mb-3">
+          <Form.Label className="d-flex align-items-center">
+            <FaCalendarAlt className="me-2" /> Date Range
+          </Form.Label>
+          <Row>
+            <Col>
+              <DatePicker
+                selected={query.startDate}
+                onChange={(date) => handleDateChange(date, 'startDate', index)}
+                placeholderText="Start Date"
+                customInput={<CustomDatePickerInput placeholder="Start Date" onChange={e => {
+                  // Allow manual date entry
+                  const date = new Date(e.target.value);
+                  if (!isNaN(date.getTime())) {
+                    handleDateChange(date, 'startDate', index);
+                  }
+                }} />}
+                className="w-100"
+              />
+            </Col>
+            <Col>
+              <DatePicker
+                selected={query.endDate}
+                onChange={(date) => handleDateChange(date, 'endDate', index)}
+                placeholderText="End Date"
+                customInput={<CustomDatePickerInput placeholder="End Date" onChange={e => {
+                  // Allow manual date entry
+                  const date = new Date(e.target.value);
+                  if (!isNaN(date.getTime())) {
+                    handleDateChange(date, 'endDate', index);
+                  }
+                }} />}
+                className="w-100"
+              />
+            </Col>
+          </Row>
+          <Form.Text className="text-muted">
+            Specify date range for filtering data
+          </Form.Text>
+        </Form.Group>
+      </Col>
 
-      <Form.Group controlId={`emotions-${index}`} className="mb-3">
-        <Form.Label>Emotions</Form.Label>
-        <div>
-          {emotionOptions.map((item) => (
-            <Badge
-              key={item}
-              bg={query.emotion.includes(item) ? 'primary' : 'secondary'}
-              onClick={() => handleEmotionChange(item, index)}
-              className="me-2 p-2 cursor-pointer"
-              style={{ cursor: 'pointer' }}
+      <Col md={6}>
+        <Form.Group controlId={`aiInsights-${index}`} className="mb-3">
+          <Form.Label className="d-flex align-items-center">
+            <FaRobot className="me-2" /> AI Insights
+          </Form.Label>
+          <div className="d-flex align-items-center">
+            <Form.Check
+              type="switch"
+              label="Enable AI-powered analysis"
+              checked={query.aiInsights}
+              onChange={() => handleAiInsightsChange(index)}
+              className="mb-0"
+            />
+            <OverlayTrigger
+              placement="right"
+              overlay={
+                <Tooltip>
+                  AI Insights uses machine learning algorithms to identify patterns and anomalies in the data
+                </Tooltip>
+              }
             >
-              {item}
-            </Badge>
-          ))}
-        </div>
-      </Form.Group>
-    </>
+              <FaInfoCircle className="ms-2 text-muted" style={{ cursor: 'pointer' }} />
+            </OverlayTrigger>
+          </div>
+          <Form.Text className="text-muted">
+            Get deeper insights with AI-powered analysis
+          </Form.Text>
+        </Form.Group>
+
+        <Form.Group controlId={`emotions-${index}`} className="mb-3">
+          <Form.Label className="d-flex align-items-center">
+            <FaSmile className="me-2" /> Emotions
+          </Form.Label>
+          <div className="emotion-badges-container">
+            {emotionOptions.map((item) => {
+              const isSelected = query.emotion.includes(item);
+              const badgeVariant = isSelected ? "primary" : "light";
+              
+              return (
+                <Badge
+                  key={item}
+                  bg={badgeVariant}
+                  className={`emotion-badge ${isSelected ? 'selected' : ''}`}
+                  onClick={() => handleEmotionChange(item, index)}
+                  pill
+                >
+                  {item}
+                </Badge>
+              );
+            })}
+          </div>
+          <Form.Text className="text-muted">
+            Select emotions to analyze in the data
+          </Form.Text>
+        </Form.Group>
+      </Col>
+    </Row>
   );
 };
 
