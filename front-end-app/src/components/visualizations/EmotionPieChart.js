@@ -39,9 +39,16 @@ const EmotionPieChart = ({ searchParams }) => {
           queryParams.set('endDate', searchParams.endDate);
         }
         
-        // Fix for emotion filter issue - only pass emotions if not 'All'
-        if (searchParams.emotions && !searchParams.emotions.includes('All')) {
-          queryParams.set('emotions', searchParams.emotions);
+        // Fixed emotion handling - ensure consistent handling across components
+        if (searchParams.emotions) {
+          // Only pass emotions if not 'All' and ensure it's a string
+          const emotions = Array.isArray(searchParams.emotions) 
+            ? searchParams.emotions.join(',') 
+            : searchParams.emotions;
+            
+          if (emotions && !emotions.includes('All')) {
+            queryParams.set('emotions', emotions);
+          }
         }
         
         console.log("Emotion pie chart query params:", queryParams.toString());

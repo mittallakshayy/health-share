@@ -8,7 +8,7 @@ const EmotionTimeline = ({ searchParams }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [data, setData] = useState([]);
-  const [emotionList, setEmotionList] = useState([]);
+  const [emotions, setEmotions] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [zoomTransform, setZoomTransform] = useState(null);
@@ -46,12 +46,18 @@ const EmotionTimeline = ({ searchParams }) => {
           queryParams.set('endDate', searchParams.endDate);
         }
         
-        // Fix for emotion filter issue - only pass emotions if not 'All'
-        if (searchParams.emotions && !searchParams.emotions.includes('All')) {
-          queryParams.set('emotions', searchParams.emotions);
+        // Updated emotion handling to be consistent with other components
+        if (searchParams.emotions) {
+          // Ensure emotions is a string and filter out 'All'
+          const emotions = Array.isArray(searchParams.emotions) 
+            ? searchParams.emotions.join(',') 
+            : searchParams.emotions;
+            
+          if (emotions && !emotions.includes('All')) {
+            queryParams.set('emotions', emotions);
+          }
         }
         
-        console.log("Emotion timeline query params:", queryParams.toString());
         const response = await fetch(`http://localhost:3003/healthshare/api/emotion-timeline?${queryParams.toString()}`);
         
         if (!response.ok) {
@@ -59,52 +65,9 @@ const EmotionTimeline = ({ searchParams }) => {
         }
         
         const result = await response.json();
-        console.log("Emotion timeline data:", result);
         
-        // Handle and deduplicate data
-        let processedData = result.timelineData || [];
-        
-        // Create a Map to deduplicate by date and combine values
-        const dateMap = new Map();
-        processedData.forEach(entry => {
-          const dateStr = new Date(entry.date).toISOString().split('T')[0];
-          if (!dateMap.has(dateStr)) {
-            dateMap.set(dateStr, {...entry, date: dateStr});
-          } else {
-            // Combine values for duplicate dates
-            const existingEntry = dateMap.get(dateStr);
-            result.emotions.forEach(emotion => {
-              existingEntry[emotion] = (existingEntry[emotion] || 0) + (entry[emotion] || 0);
-            });
-          }
-        });
-        
-        // Convert back to array
-        processedData = Array.from(dateMap.values());
-        
-        // Sort by date
-        processedData.sort((a, b) => new Date(a.date) - new Date(b.date));
-        
-        console.log("Processed timeline data:", processedData);
-        
-        setData(processedData);
-        setBrushExtent(null); // Reset brush when new data is loaded
-        setZoomTransform(null); // Reset zoom when new data is loaded
-        
-        // Filter out 'Mixed' from emotions if present
-        const filteredEmotions = (result.emotions || []).filter(emotion => emotion !== 'Mixed');
-        setEmotionList(filteredEmotions);
-        
-        // Calculate total count from all emotions (excluding Mixed)
-        const count = processedData.reduce((total, entry) => {
-          let entrySum = 0;
-          filteredEmotions.forEach(emotion => {
-            entrySum += (entry[emotion] || 0);
-          });
-          return total + entrySum;
-        }, 0);
-        
-        setTotalCount(count);
+        setData(result.timelineData || []);
+        setEmotions(result.emotions || []);
       } catch (err) {
         console.error('Error fetching emotion timeline data:', err);
         setError('Failed to fetch emotion timeline data. Please try again.');
@@ -205,15 +168,15 @@ const EmotionTimeline = ({ searchParams }) => {
   
   // Draw the stream graph whenever data changes
   useEffect(() => {
-    if (data.length === 0 || !svgRef.current || emotionList.length === 0) return;
+    if (data.length === 0 || !svgRef.current || emotions.length === 0) return;
     
     // Debug data
     console.log("Timeline data for rendering:", data);
-    console.log("Emotion list for rendering:", emotionList);
+    console.log("Emotion list for rendering:", emotions);
     
     // Check if there's any emotion data to display
     const hasEmotionData = data.some(entry => {
-      return emotionList.some(emotion => entry[emotion] > 0);
+      return emotions.some(emotion => entry[emotion] > 0);
     });
     
     // Clear any existing chart
@@ -279,7 +242,7 @@ const EmotionTimeline = ({ searchParams }) => {
         
         // Create a new object with all emotions as numbers
         const entry = { date: dateObj };
-        emotionList.forEach(emotion => {
+        emotions.forEach(emotion => {
           entry[emotion] = +(d[emotion] || 0); // Convert to number and handle undefined
         });
         
@@ -309,7 +272,7 @@ const EmotionTimeline = ({ searchParams }) => {
       
       // Create stack generator with selected offset based on yScaleType
       const stack = d3.stack()
-        .keys(emotionList)
+        .keys(emotions)
         .order(d3.stackOrderNone);
         
       // Apply the appropriate offset based on user selection
@@ -500,27 +463,27 @@ const EmotionTimeline = ({ searchParams }) => {
           const date = dateFormatter(dataPoint.date);
 
           // Calculate percentage of this emotion relative to all emotions on this date
-          const totalOnDate = emotionList.reduce((sum, emotion) => sum + (dataPoint[emotion] || 0), 0);
+          const totalOnDate = emotions.reduce((sum, emotion) => sum + (dataPoint[emotion] || 0), 0);
           const percentageOnDate = totalOnDate > 0 ? (count / totalOnDate * 100).toFixed(1) : 0;
           
           // Calculate percentage relative to all data
           const percentageOfTotal = totalCount > 0 ? (count / totalCount * 100).toFixed(1) : 0;
           
           // Find if this is the dominant emotion for this date
-          const emotions = emotionList.map(emotion => ({ 
+          const emotionsList = emotions.map(emotion => ({ 
             name: emotion, 
             count: dataPoint[emotion] || 0 
           }));
-          emotions.sort((a, b) => b.count - a.count);
-          const isDominant = emotions.length > 0 && emotions[0].name === d.key && emotions[0].count > 0;
+          emotionsList.sort((a, b) => b.count - a.count);
+          const isDominant = emotionsList.length > 0 && emotionsList[0].name === d.key && emotionsList[0].count > 0;
           
           // Find other emotions present on this date for comparison
-          const otherEmotions = emotions
+          const otherEmotions = emotionsList
             .filter(e => e.name !== d.key && e.count > 0)
             .slice(0, 3); // Top 3 other emotions
               
           // Get the most frequent emotion on this date
-          const mostFrequentEmotion = emotions.length > 0 ? emotions[0] : null;
+          const mostFrequentEmotion = emotionsList.length > 0 ? emotionsList[0] : null;
           
           // Calculate percentage change from previous day if available
           let percentageChange = null;
@@ -784,7 +747,7 @@ const EmotionTimeline = ({ searchParams }) => {
     return () => {
       d3.selectAll(".emotion-timeline-tooltip").remove();
     };
-  }, [data, emotionList, totalCount, brushExtent, zoomTransform, yScaleType]);
+  }, [data, emotions, totalCount, brushExtent, zoomTransform, yScaleType]);
   
   // Render the color legend
   const renderColorLegend = () => {
@@ -792,7 +755,7 @@ const EmotionTimeline = ({ searchParams }) => {
       <div className="mt-3">
         <h6>Legend:</h6>
         <div className="d-flex flex-wrap">
-          {emotionList.map(emotion => (
+          {emotions.map(emotion => (
             <div key={emotion} className="me-3 mb-2 d-flex align-items-center">
               <span
                 style={{
@@ -922,7 +885,7 @@ const EmotionTimeline = ({ searchParams }) => {
   useEffect(() => {
     const handleResize = () => {
       // Re-render chart on window resize
-      if (data.length > 0 && emotionList.length > 0) {
+      if (data.length > 0 && emotions.length > 0) {
         // Re-trigger the chart drawing effect while maintaining current zoom
         const tempData = [...data];
         const tempBrushExtent = brushExtent;
@@ -945,7 +908,7 @@ const EmotionTimeline = ({ searchParams }) => {
     return () => {
       window.removeEventListener('resize', handleResize);
     };
-  }, [data, emotionList, brushExtent, zoomTransform]);
+  }, [data, emotions, brushExtent, zoomTransform]);
   
   return (
     <Card>
