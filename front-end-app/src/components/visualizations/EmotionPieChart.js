@@ -12,6 +12,7 @@ const EmotionPieChart = ({ searchParams }) => {
   const [selectedEmotion, setSelectedEmotion] = useState(null);
   const [emotionTexts, setEmotionTexts] = useState([]);
   const [loadingTexts, setLoadingTexts] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   
   const svgRef = useRef();
   const containerRef = useRef();
@@ -205,7 +206,12 @@ const EmotionPieChart = ({ searchParams }) => {
           .style('opacity', '0');
       })
       .on('click', function(event, d) {
-        fetchEmotionTexts(d.data.name);
+        event.stopPropagation(); // Prevent event bubbling
+        setEmotionTexts([]); // Clear previous texts
+        setLoadingTexts(true);
+        setSelectedEmotion({ name: d.data.name }); // Set initial state
+        setShowModal(true); // Open modal first to show loading state
+        fetchEmotionTexts(d.data.name); // Then fetch data
       });
     
     // Add external labels for all segments
@@ -272,9 +278,12 @@ const EmotionPieChart = ({ searchParams }) => {
   
   // Function to fetch all texts for a specific emotion
   const fetchEmotionTexts = async (emotionName) => {
+    if (!emotionName) {
+      setLoadingTexts(false);
+      return;
+    }
+    
     setLoadingTexts(true);
-    setSelectedEmotion({ name: emotionName });
-    setShowModal(true);
     
     try {
       // Construct URL with search parameters
@@ -295,8 +304,7 @@ const EmotionPieChart = ({ searchParams }) => {
       // Use the emotion name for fetching texts
       queryParams.set('emotion', emotionName);
       
-      // Since our backend still uses dominant_emotion for the texts endpoint, we may need a new endpoint
-      // For now, we'll use the sample texts directly from our data to display in the modal
+      // Find matching emotion data from our cached data first
       const matchingEmotionData = data.find(item => item.name === emotionName);
       
       if (matchingEmotionData && matchingEmotionData.sampleTexts) {
@@ -306,7 +314,6 @@ const EmotionPieChart = ({ searchParams }) => {
           value: matchingEmotionData.value,
           emotionAvgs: matchingEmotionData.emotionAvgs
         });
-        setLoadingTexts(false);
       } else {
         // Fallback to API if no sample texts in our data
         const response = await fetch(`http://localhost:3003/healthshare/api/emotion-texts?${queryParams.toString()}`);
@@ -316,15 +323,22 @@ const EmotionPieChart = ({ searchParams }) => {
         }
         
         const result = await response.json();
-        setEmotionTexts(result.texts || []);
-        setSelectedEmotion({
-          name: emotionName,
-          value: result.texts.length
-        });
+        
+        if (result.texts && Array.isArray(result.texts)) {
+          setEmotionTexts(result.texts);
+          setSelectedEmotion({
+            name: emotionName,
+            value: result.texts.length
+          });
+        } else {
+          // Handle empty or invalid response
+          setEmotionTexts([]);
+        }
       }
     } catch (err) {
       console.error('Error fetching emotion texts:', err);
       setEmotionTexts([]);
+      setErrorMessage('Failed to load emotion texts. Please try again.');
     } finally {
       setLoadingTexts(false);
     }
@@ -387,6 +401,15 @@ const EmotionPieChart = ({ searchParams }) => {
       fetchEmotionTexts(selectedEmotion.name);
     }
   }, [selectedEmotion, fetchEmotionTexts]);
+  
+  // Add a closeModal function after all state declarations
+  const closeModal = () => {
+    setShowModal(false);
+    setSelectedEmotion(null);
+    setEmotionTexts([]);
+    setLoadingTexts(false);
+    setErrorMessage('');
+  };
   
   return (
     <Card>
@@ -452,14 +475,19 @@ const EmotionPieChart = ({ searchParams }) => {
       {/* Modal to display texts for selected emotion */}
       <Modal 
         show={showModal} 
-        onHide={() => setShowModal(false)}
+        onHide={closeModal}
         size="lg"
         centered
+        backdrop="static"
+        keyboard={true}
       >
-        <Modal.Header closeButton style={{ 
-          backgroundColor: selectedEmotion ? emotionColors[selectedEmotion.name] || '#999999' : '#fff', 
-          color: selectedEmotion && ['Joy', 'Anticipation'].includes(selectedEmotion.name) ? 'black' : 'white' 
-        }}>
+        <Modal.Header 
+          closeButton 
+          style={{ 
+            backgroundColor: selectedEmotion ? emotionColors[selectedEmotion.name] || '#999999' : '#fff', 
+            color: selectedEmotion && ['Joy', 'Anticipation'].includes(selectedEmotion.name) ? 'black' : 'white' 
+          }}
+        >
           <Modal.Title>
             {selectedEmotion?.name} Texts {selectedEmotion?.value && `(${selectedEmotion.value} records)`}
           </Modal.Title>
@@ -470,6 +498,11 @@ const EmotionPieChart = ({ searchParams }) => {
               <Spinner animation="border" size="sm" />
               <p>Loading texts...</p>
             </div>
+          ) : errorMessage ? (
+            <Alert variant="danger" className="my-3">
+              <Alert.Heading>Error</Alert.Heading>
+              <p>{errorMessage}</p>
+            </Alert>
           ) : emotionTexts.length > 0 ? (
             <>
               {selectedEmotion?.emotionAvgs && (
@@ -529,7 +562,10 @@ const EmotionPieChart = ({ searchParams }) => {
           )}
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModal(false)}>
+          <Button 
+            variant="secondary" 
+            onClick={closeModal}
+          >
             Close
           </Button>
         </Modal.Footer>
