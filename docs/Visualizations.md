@@ -17,6 +17,11 @@ Visualizes how emotions change over time using an interactive stream graph. This
 
 [Detailed Documentation](./EmotionTimeline.md)
 
+### 4. Emotion Spider Wheel
+Displays emotion distribution using a radar chart with two metrics: the number of texts where each emotion is dominant (red polygon) and the percentage of texts where each emotion is present (blue polygon). This visualization helps compare emotional composition across the dataset.
+
+[Detailed Documentation](./EmotionSpiderWheel.md)
+
 ## Integration
 
 All visualizations are designed to work with the Advanced Search component, which provides filtering capabilities:
@@ -40,6 +45,7 @@ The visualizations are powered by dedicated API endpoints:
 - `/api/wordcloud-data` - Processes and returns word frequency data with emotional context
 - `/api/emotion-max-distribution` - Provides data on emotional distribution using maximum emotion approach
 - `/api/emotion-timeline` - Returns time-series data of emotions for timeline visualization
+- `/api/emotion-spider` - Returns data for the Emotion Spider Wheel with dominant and presence metrics
 
 ## Usage Example
 
@@ -50,6 +56,7 @@ import AdvancedSearch from './components/AdvancedSearch';
 import WordCloud from './components/visualizations/WordCloud';
 import EmotionPieChart from './components/visualizations/EmotionPieChart';
 import EmotionTimeline from './components/visualizations/EmotionTimeline';
+import EmotionSpiderWheel from './components/visualizations/EmotionSpiderWheel';
 
 function VisualizationDashboard() {
   const [searchParams, setSearchParams] = useState(null);
@@ -74,8 +81,11 @@ function VisualizationDashboard() {
             </Col>
           </Row>
           <Row className="mt-4">
-            <Col md={12}>
+            <Col md={6}>
               <EmotionTimeline searchParams={searchParams} />
+            </Col>
+            <Col md={6}>
+              <EmotionSpiderWheel searchParams={searchParams} />
             </Col>
           </Row>
         </Col>

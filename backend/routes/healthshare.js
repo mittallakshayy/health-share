@@ -1020,4 +1020,152 @@ router.get("/api/emotion-timeline", async (req, res, next) => {
   }
 });
 
+// New endpoint for Emotion Spider Wheel visualization
+router.get("/api/emotion-spider", async (req, res, next) => {
+  try {
+    const { sources, startDate, endDate, emotions: emotionFilters } = req.query;
+    
+    // Build WHERE clause and params
+    let whereClause = "1=1";
+    const queryParams = [];
+    let paramCounter = 1;
+    
+    // Add sources filter if provided
+    if (sources && sources.length > 0) {
+      const sourceArray = sources.split(',').filter(Boolean);
+      if (sourceArray.length > 0) {
+        const sourcePlaceholders = sourceArray.map(() => `$${paramCounter++}`).join(', ');
+        whereClause += ` AND data_source IN (${sourcePlaceholders})`;
+        queryParams.push(...sourceArray);
+      }
+    }
+
+    // Add date range filter if provided
+    if (startDate) {
+      whereClause += ` AND created_at >= $${paramCounter++}`;
+      queryParams.push(startDate);
+    }
+    if (endDate) {
+      whereClause += ` AND created_at <= $${paramCounter++}`;
+      queryParams.push(endDate);
+    }
+    
+    // Get the total number of texts matching the filters
+    const countQuery = `SELECT COUNT(*) as total FROM rawdata_with_emotion WHERE ${whereClause}`;
+    const totalCountResult = await db.query(countQuery, queryParams);
+    const totalCount = parseInt(totalCountResult.rows[0].total);
+    
+    if (totalCount === 0) {
+      // No data found
+      return res.status(200).json({
+        emotions: [],
+        dominantCounts: {},
+        presentCounts: {},
+        totalCount: 0
+      });
+    }
+    
+    // Query to count texts with each emotion as maximum
+    const maxEmotionQuery = `
+      SELECT
+        CASE
+          WHEN anger > GREATEST(anticipation, disgust, fear, joy, sadness, surprise, trust) THEN 'Anger'
+          WHEN anticipation > GREATEST(anger, disgust, fear, joy, sadness, surprise, trust) THEN 'Anticipation'
+          WHEN disgust > GREATEST(anger, anticipation, fear, joy, sadness, surprise, trust) THEN 'Disgust'
+          WHEN fear > GREATEST(anger, anticipation, disgust, joy, sadness, surprise, trust) THEN 'Fear'
+          WHEN joy > GREATEST(anger, anticipation, disgust, fear, sadness, surprise, trust) THEN 'Joy'
+          WHEN sadness > GREATEST(anger, anticipation, disgust, fear, joy, surprise, trust) THEN 'Sadness'
+          WHEN surprise > GREATEST(anger, anticipation, disgust, fear, joy, sadness, trust) THEN 'Surprise'
+          WHEN trust > GREATEST(anger, anticipation, disgust, fear, joy, sadness, surprise) THEN 'Trust'
+          ELSE 'Mixed'
+        END as max_emotion,
+        COUNT(*) as count
+      FROM rawdata_with_emotion
+      WHERE ${whereClause}
+      GROUP BY max_emotion
+      ORDER BY count DESC
+    `;
+    
+    // Query to count texts where each emotion is present (value > 0)
+    const presenceQuery = `
+      SELECT
+        SUM(CASE WHEN anger > 0 THEN 1 ELSE 0 END) as anger_present,
+        SUM(CASE WHEN anticipation > 0 THEN 1 ELSE 0 END) as anticipation_present,
+        SUM(CASE WHEN disgust > 0 THEN 1 ELSE 0 END) as disgust_present,
+        SUM(CASE WHEN fear > 0 THEN 1 ELSE 0 END) as fear_present,
+        SUM(CASE WHEN joy > 0 THEN 1 ELSE 0 END) as joy_present,
+        SUM(CASE WHEN sadness > 0 THEN 1 ELSE 0 END) as sadness_present,
+        SUM(CASE WHEN surprise > 0 THEN 1 ELSE 0 END) as surprise_present,
+        SUM(CASE WHEN trust > 0 THEN 1 ELSE 0 END) as trust_present
+      FROM rawdata_with_emotion
+      WHERE ${whereClause}
+    `;
+    
+    // Execute queries
+    const [maxResult, presenceResult] = await Promise.all([
+      db.query(maxEmotionQuery, queryParams),
+      db.query(presenceQuery, queryParams)
+    ]);
+    
+    // Process maximum emotion counts
+    const dominantCounts = {};
+    maxResult.rows.forEach(row => {
+      if (row.max_emotion !== 'Mixed') {
+        dominantCounts[row.max_emotion] = parseInt(row.count);
+      }
+    });
+    
+    // Process emotion presence counts and convert to percentages
+    const presenceRow = presenceResult.rows[0];
+    const presentCounts = {
+      Anger: {
+        count: parseInt(presenceRow.anger_present),
+        percentage: (parseInt(presenceRow.anger_present) / totalCount * 100).toFixed(1)
+      },
+      Anticipation: {
+        count: parseInt(presenceRow.anticipation_present),
+        percentage: (parseInt(presenceRow.anticipation_present) / totalCount * 100).toFixed(1)
+      },
+      Disgust: {
+        count: parseInt(presenceRow.disgust_present),
+        percentage: (parseInt(presenceRow.disgust_present) / totalCount * 100).toFixed(1)
+      },
+      Fear: {
+        count: parseInt(presenceRow.fear_present),
+        percentage: (parseInt(presenceRow.fear_present) / totalCount * 100).toFixed(1)
+      },
+      Joy: {
+        count: parseInt(presenceRow.joy_present),
+        percentage: (parseInt(presenceRow.joy_present) / totalCount * 100).toFixed(1)
+      },
+      Sadness: {
+        count: parseInt(presenceRow.sadness_present),
+        percentage: (parseInt(presenceRow.sadness_present) / totalCount * 100).toFixed(1)
+      },
+      Surprise: {
+        count: parseInt(presenceRow.surprise_present),
+        percentage: (parseInt(presenceRow.surprise_present) / totalCount * 100).toFixed(1)
+      },
+      Trust: {
+        count: parseInt(presenceRow.trust_present),
+        percentage: (parseInt(presenceRow.trust_present) / totalCount * 100).toFixed(1)
+      }
+    };
+    
+    // Get list of all emotions
+    const emotions = Object.keys(presentCounts);
+    
+    // Return the processed data
+    res.status(200).json({
+      emotions,
+      dominantCounts,
+      presentCounts,
+      totalCount
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
 module.exports = router;

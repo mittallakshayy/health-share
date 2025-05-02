@@ -16,7 +16,6 @@ const AdvancedSearch = ({ onSearch }) => {
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [aiInsights, setAiInsights] = useState(false);
-  const [sentiment, setSentiment] = useState([]);
   const [emotion, setEmotion] = useState(['All']); // Default to 'All'
 
   const formatDate = (date) => {
@@ -26,14 +25,6 @@ const AdvancedSearch = ({ onSearch }) => {
 
   const handleSourceChange = (options) => {
     setSelectedSources(options || []);
-  };
-
-  const handleSentimentChange = (value) => {
-    setSentiment((prev) => 
-      prev.includes(value) 
-        ? prev.filter((s) => s !== value) 
-        : [...prev, value]
-    );
   };
 
   const handleEmotionChange = (value) => {
@@ -65,7 +56,7 @@ const AdvancedSearch = ({ onSearch }) => {
       sources: selectedSources,
       startDate: formattedStartDate,
       endDate: formattedEndDate,
-      sentiment: sentiment,
+      aiInsights: aiInsights,
       emotions: emotion.join(',')
     };
     
@@ -121,24 +112,6 @@ const AdvancedSearch = ({ onSearch }) => {
           checked={aiInsights}
           onChange={() => setAiInsights((prev) => !prev)}
         />
-      </Form.Group>
-
-      {/* Checkbox for Sentiment */}
-      <Form.Group controlId="sentiment" className="mb-3">
-        <Form.Label>Sentiment</Form.Label>
-        <div>
-          {['Positive', 'Negative', 'Neutral'].map((item) => (
-            <Form.Check
-              key={item}
-              type="checkbox"
-              inline
-              label={item}
-              value={item}
-              checked={sentiment.includes(item)}
-              onChange={() => handleSentimentChange(item)}
-            />
-          ))}
-        </div>
       </Form.Group>
 
       {/* Pills Buttons for Emotions */}

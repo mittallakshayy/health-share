@@ -3,6 +3,7 @@ import { Container, Row, Col, Card, Nav } from 'react-bootstrap';
 import EmotionWordCloud from './visualizations/EmotionWordCloud';
 import EmotionPieChart from './visualizations/EmotionPieChart';
 import EmotionTimeline from './visualizations/EmotionTimeline';
+import EmotionSpiderWheel from './visualizations/EmotionSpiderWheel';
 import AdvancedSearch from './AdvancedSearch';
 import { useLocation } from 'react-router-dom';
 
@@ -90,10 +91,10 @@ const Visualizations = () => {
                 </Nav.Item>
                 <Nav.Item>
                   <Nav.Link 
-                    eventKey="sentimentanalysis" 
-                    onClick={() => setActiveTab('sentimentanalysis')}
+                    eventKey="emotionspiderwheel" 
+                    onClick={() => setActiveTab('emotionspiderwheel')}
                   >
-                    Sentiment Analysis
+                    Emotion Spider Wheel
                   </Nav.Link>
                 </Nav.Item>
               </Nav>
@@ -117,7 +118,7 @@ const Visualizations = () => {
                   {activeTab === 'wordcloud' && <EmotionWordCloud searchParams={searchParams} />}
                   {activeTab === 'emotiontrend' && <EmotionPieChart searchParams={searchParams} />}
                   {activeTab === 'emotiontimeline' && <EmotionTimeline searchParams={searchParams} />}
-                  {activeTab === 'sentimentanalysis' && <div>Sentiment Analysis Visualization (Coming Soon)</div>}
+                  {activeTab === 'emotionspiderwheel' && <EmotionSpiderWheel searchParams={searchParams} />}
                 </div>
               )}
             </Card.Body>

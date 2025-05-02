@@ -7,6 +7,7 @@ This directory contains screenshots of the Health-Share application visualizatio
 - `word-cloud.png` - Screenshot of the Word Cloud visualization
 - `emotion-pie-chart.png` - Screenshot of the Emotion Pie Chart visualization
 - `emotion-timeline.png` - Screenshot of the Emotion Timeline visualization
+- `emotion-spider-wheel.png` - Screenshot of the Emotion Spider Wheel visualization
 
 ## Screenshot Placeholder
 
@@ -35,4 +36,5 @@ These screenshots are referenced in the visualization documentation:
 - `docs/WordCloud.md`
 - `docs/EmotionPieChart.md`
 - `docs/EmotionTimeline.md`
+- `docs/EmotionSpiderWheel.md`
 - `docs/Visualizations.md` 
