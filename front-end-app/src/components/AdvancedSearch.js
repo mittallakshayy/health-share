@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Form, Button, Badge, Tab, Tabs, Row, Col, Card, OverlayTrigger, Tooltip } from 'react-bootstrap';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
 import Select from 'react-select';
 import { FaPlus, FaTrash, FaChartBar, FaCalendarAlt, FaDatabase, FaSmile, FaTag, FaRobot, FaInfoCircle } from 'react-icons/fa';
+import DateRangeTimeline from './DateRangeTimeline';
+import '../styles/DateRangeTimeline.css';
 
 const sourceOptions = [
   { value: 'Twitter', label: 'Twitter' },
@@ -52,21 +52,6 @@ const selectStyles = {
     }
   }),
 };
-
-// Custom styles for DatePicker
-const CustomDatePickerInput = React.forwardRef(({ value, onClick, placeholder, onChange }, ref) => (
-  <div className="custom-datepicker-input" onClick={onClick}>
-    <input
-      type="text"
-      className="form-control"
-      value={value || ''}
-      placeholder={placeholder}
-      onChange={onChange}
-      ref={ref}
-    />
-    <FaCalendarAlt className="datepicker-icon" />
-  </div>
-));
 
 // Initial search query template
 const initialSearchQuery = {
@@ -370,40 +355,14 @@ const SearchQueryForm = ({
           <Form.Label className="d-flex align-items-center">
             <FaCalendarAlt className="me-2" /> Date Range
           </Form.Label>
-          <Row>
-            <Col>
-              <DatePicker
-                selected={query.startDate}
-                onChange={(date) => handleDateChange(date, 'startDate', index)}
-                placeholderText="Start Date"
-                customInput={<CustomDatePickerInput placeholder="Start Date" onChange={e => {
-                  // Allow manual date entry
-                  const date = new Date(e.target.value);
-                  if (!isNaN(date.getTime())) {
-                    handleDateChange(date, 'startDate', index);
-                  }
-                }} />}
-                className="w-100"
-              />
-            </Col>
-            <Col>
-              <DatePicker
-                selected={query.endDate}
-                onChange={(date) => handleDateChange(date, 'endDate', index)}
-                placeholderText="End Date"
-                customInput={<CustomDatePickerInput placeholder="End Date" onChange={e => {
-                  // Allow manual date entry
-                  const date = new Date(e.target.value);
-                  if (!isNaN(date.getTime())) {
-                    handleDateChange(date, 'endDate', index);
-                  }
-                }} />}
-                className="w-100"
-              />
-            </Col>
-          </Row>
-          <Form.Text className="text-muted">
-            Specify date range for filtering data
+          <DateRangeTimeline
+            startDate={query.startDate}
+            endDate={query.endDate}
+            onStartDateChange={(date) => handleDateChange(date, 'startDate', index)}
+            onEndDateChange={(date) => handleDateChange(date, 'endDate', index)}
+          />
+          <Form.Text className="text-muted mt-2">
+            Drag the markers to adjust the date range or use the inputs for precise selection
           </Form.Text>
         </Form.Group>
       </Col>
