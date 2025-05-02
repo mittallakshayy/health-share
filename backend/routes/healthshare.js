@@ -240,7 +240,7 @@ router.get("/api/twitter-visualization", async (req, res, next) => {
 // Endpoint for emotion data visualization
 router.get("/api/emotion-visualization", async (req, res, next) => {
   try {
-    const { sources, startDate, endDate, sentiment, emotions } = req.query;
+    const { sources, startDate, endDate, emotions } = req.query;
     
     let sqlQuery = "SELECT * FROM rawdata_with_emotion WHERE 1=1";
     const queryParams = [];
@@ -248,10 +248,12 @@ router.get("/api/emotion-visualization", async (req, res, next) => {
 
     // Add sources filter if provided
     if (sources && sources.length > 0) {
-      const sourceArray = sources.split(',');
-      const sourcePlaceholders = sourceArray.map(() => `$${paramCounter++}`).join(', ');
-      sqlQuery += ` AND data_source IN (${sourcePlaceholders})`;
-      queryParams.push(...sourceArray);
+      const sourceArray = sources.split(',').filter(Boolean);
+      if (sourceArray.length > 0) {
+        const sourcePlaceholders = sourceArray.map(() => `$${paramCounter++}`).join(', ');
+        sqlQuery += ` AND data_source IN (${sourcePlaceholders})`;
+        queryParams.push(...sourceArray);
+      }
     }
 
     // Add date range filter if provided
@@ -264,19 +266,50 @@ router.get("/api/emotion-visualization", async (req, res, next) => {
       queryParams.push(endDate);
     }
 
-    // Add emotion filters if provided
+    // Add emotion filters if provided - updated to be consistent with other endpoints
     if (emotions && emotions.length > 0) {
-      const emotionArray = emotions.split(',');
-      const emotionConditions = [];
+      const emotionArray = emotions.split(',').filter(emotion => 
+        emotion && emotion.trim() !== '' && emotion.trim() !== 'All'
+      );
       
-      emotionArray.forEach(emotion => {
-        if (emotion !== 'All') {
-          emotionConditions.push(`${emotion.toLowerCase()} > 0.5`);
+      if (emotionArray.length > 0) {
+        const emotionConditions = [];
+        
+        emotionArray.forEach(emotion => {
+          const emotionLower = emotion.toLowerCase();
+          
+          // Use the same approach as other endpoints
+          switch(emotionLower) {
+            case 'anger':
+              emotionConditions.push(`anger > GREATEST(anticipation, disgust, fear, joy, sadness, surprise, trust)`);
+              break;
+            case 'anticipation':
+              emotionConditions.push(`anticipation > GREATEST(anger, disgust, fear, joy, sadness, surprise, trust)`);
+              break;
+            case 'disgust':
+              emotionConditions.push(`disgust > GREATEST(anger, anticipation, fear, joy, sadness, surprise, trust)`);
+              break;
+            case 'fear':
+              emotionConditions.push(`fear > GREATEST(anger, anticipation, disgust, joy, sadness, surprise, trust)`);
+              break;
+            case 'joy':
+              emotionConditions.push(`joy > GREATEST(anger, anticipation, disgust, fear, sadness, surprise, trust)`);
+              break;
+            case 'sadness':
+              emotionConditions.push(`sadness > GREATEST(anger, anticipation, disgust, fear, joy, surprise, trust)`);
+              break;
+            case 'surprise':
+              emotionConditions.push(`surprise > GREATEST(anger, anticipation, disgust, fear, joy, sadness, trust)`);
+              break;
+            case 'trust':
+              emotionConditions.push(`trust > GREATEST(anger, anticipation, disgust, fear, joy, sadness, surprise)`);
+              break;
+          }
+        });
+        
+        if (emotionConditions.length > 0) {
+          sqlQuery += ` AND (${emotionConditions.join(' OR ')})`;
         }
-      });
-      
-      if (emotionConditions.length > 0) {
-        sqlQuery += ` AND (${emotionConditions.join(' OR ')})`;
       }
     }
 
@@ -319,6 +352,53 @@ router.get("/api/wordcloud-data", async (req, res, next) => {
       countParams.push(endDate);
     }
     
+    // Add emotion filters if provided - updated to be consistent with other endpoints
+    if (emotions && emotions.length > 0) {
+      const emotionArray = emotions.split(',').filter(emotion => 
+        emotion && emotion.trim() !== '' && emotion.trim() !== 'All'
+      );
+      
+      if (emotionArray.length > 0) {
+        const emotionConditions = [];
+        
+        emotionArray.forEach(emotion => {
+          const emotionLower = emotion.toLowerCase();
+          
+          // Use the same approach as other endpoints
+          switch(emotionLower) {
+            case 'anger':
+              emotionConditions.push(`anger > GREATEST(anticipation, disgust, fear, joy, sadness, surprise, trust)`);
+              break;
+            case 'anticipation':
+              emotionConditions.push(`anticipation > GREATEST(anger, disgust, fear, joy, sadness, surprise, trust)`);
+              break;
+            case 'disgust':
+              emotionConditions.push(`disgust > GREATEST(anger, anticipation, fear, joy, sadness, surprise, trust)`);
+              break;
+            case 'fear':
+              emotionConditions.push(`fear > GREATEST(anger, anticipation, disgust, joy, sadness, surprise, trust)`);
+              break;
+            case 'joy':
+              emotionConditions.push(`joy > GREATEST(anger, anticipation, disgust, fear, sadness, surprise, trust)`);
+              break;
+            case 'sadness':
+              emotionConditions.push(`sadness > GREATEST(anger, anticipation, disgust, fear, joy, surprise, trust)`);
+              break;
+            case 'surprise':
+              emotionConditions.push(`surprise > GREATEST(anger, anticipation, disgust, fear, joy, sadness, trust)`);
+              break;
+            case 'trust':
+              emotionConditions.push(`trust > GREATEST(anger, anticipation, disgust, fear, joy, sadness, surprise)`);
+              break;
+          }
+        });
+        
+        if (emotionConditions.length > 0) {
+          countQuery += ` AND (${emotionConditions.join(' OR ')})`;
+        }
+      }
+    }
+    
     // Execute count query
     const totalCountResult = await db.query(countQuery, countParams);
     const totalRecords = parseInt(totalCountResult.rows[0].count);
@@ -337,7 +417,7 @@ router.get("/api/wordcloud-data", async (req, res, next) => {
     const queryParams = [];
     paramCounter = 1;
 
-    // Add sources filter if provided
+    // Add sources filter if provided - using exact same conditions as the count query
     if (sources && sources.length > 0) {
       const sourceArray = sources.split(',').filter(Boolean);
       if (sourceArray.length > 0) {
@@ -357,16 +437,45 @@ router.get("/api/wordcloud-data", async (req, res, next) => {
       queryParams.push(endDate);
     }
 
-    // Add emotion filters if provided - fixed to handle empty strings and 'All' properly
+    // Add emotion filters - using exact same logic as the count query
     if (emotions && emotions.length > 0) {
       const emotionArray = emotions.split(',').filter(emotion => 
         emotion && emotion.trim() !== '' && emotion.trim() !== 'All'
       );
       
       if (emotionArray.length > 0) {
-        const emotionConditions = emotionArray.map(emotion => {
-          // Create a condition where this emotion has significant presence
-          return `${emotion.toLowerCase()} > 0.5`;
+        const emotionConditions = [];
+        
+        emotionArray.forEach(emotion => {
+          const emotionLower = emotion.toLowerCase();
+          
+          // Use the same approach as other endpoints
+          switch(emotionLower) {
+            case 'anger':
+              emotionConditions.push(`anger > GREATEST(anticipation, disgust, fear, joy, sadness, surprise, trust)`);
+              break;
+            case 'anticipation':
+              emotionConditions.push(`anticipation > GREATEST(anger, disgust, fear, joy, sadness, surprise, trust)`);
+              break;
+            case 'disgust':
+              emotionConditions.push(`disgust > GREATEST(anger, anticipation, fear, joy, sadness, surprise, trust)`);
+              break;
+            case 'fear':
+              emotionConditions.push(`fear > GREATEST(anger, anticipation, disgust, joy, sadness, surprise, trust)`);
+              break;
+            case 'joy':
+              emotionConditions.push(`joy > GREATEST(anger, anticipation, disgust, fear, sadness, surprise, trust)`);
+              break;
+            case 'sadness':
+              emotionConditions.push(`sadness > GREATEST(anger, anticipation, disgust, fear, joy, surprise, trust)`);
+              break;
+            case 'surprise':
+              emotionConditions.push(`surprise > GREATEST(anger, anticipation, disgust, fear, joy, sadness, trust)`);
+              break;
+            case 'trust':
+              emotionConditions.push(`trust > GREATEST(anger, anticipation, disgust, fear, joy, sadness, surprise)`);
+              break;
+          }
         });
         
         if (emotionConditions.length > 0) {

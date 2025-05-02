@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import ReactWordcloud from 'react-wordcloud';
 import { Card, Spinner, Alert, Badge } from 'react-bootstrap';
-import * as d3 from 'd3';
-import { schemeCategory10 } from 'd3-scale-chromatic';
 import 'tippy.js/dist/tippy.css';
 import 'tippy.js/animations/scale.css';
 import { emotionColors } from './emotionColors';
@@ -120,8 +118,16 @@ const EmotionWordCloud = ({ searchParams }) => {
           queryParams.set('endDate', searchParams.endDate);
         }
         
+        // Updated emotion handling to be consistent with other components
         if (searchParams.emotions) {
-          queryParams.set('emotions', searchParams.emotions);
+          // Ensure emotions is a string and filter out 'All'
+          const emotions = Array.isArray(searchParams.emotions) 
+            ? searchParams.emotions.join(',') 
+            : searchParams.emotions;
+            
+          if (emotions && !emotions.includes('All')) {
+            queryParams.set('emotions', emotions);
+          }
         }
         
         console.log("Query params:", queryParams.toString());

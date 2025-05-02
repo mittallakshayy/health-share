@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Card, Spinner, Alert, Badge, Modal } from 'react-bootstrap';
+import { Card, Spinner, Alert, Badge, Modal, Button } from 'react-bootstrap';
 import * as d3 from 'd3';
 import { emotionColors } from './emotionColors';
 
@@ -432,7 +432,7 @@ const EmotionSpiderWheel = ({ searchParams }) => {
             <Modal show={showModal} onHide={() => setShowModal(false)} centered>
               <Modal.Header closeButton style={{ 
                 backgroundColor: selectedEmotion ? selectedEmotion.color : 'white',
-                color: selectedEmotion ? 'white' : 'black'
+                color: selectedEmotion ? (selectedEmotion.name === 'Joy' || selectedEmotion.name === 'Anticipation' ? 'black' : 'white') : 'black'
               }}>
                 <Modal.Title>{selectedEmotion?.name} Emotion Details</Modal.Title>
               </Modal.Header>
@@ -441,18 +441,82 @@ const EmotionSpiderWheel = ({ searchParams }) => {
                   <div>
                     <h5 className="mb-3" style={{ color: selectedEmotion.color }}>{selectedEmotion.name} Statistics</h5>
                     
-                    <h6>Dominant Emotion Statistics:</h6>
-                    <p>This emotion is dominant in <strong>{selectedEmotion.dominantCount}</strong> texts, which is <strong>{selectedEmotion.dominantPercentage.toFixed(2)}%</strong> of all texts.</p>
+                    <div className="card mb-3 border-0 shadow-sm">
+                      <div className="card-body">
+                        <h6 className="card-subtitle mb-2 text-muted">Dominant Emotion</h6>
+                        <div className="d-flex align-items-center mb-1">
+                          <div className="emotion-stat-circle" style={{ 
+                            backgroundColor: selectedEmotion.color,
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            marginRight: '12px',
+                            color: selectedEmotion.name === 'Joy' || selectedEmotion.name === 'Anticipation' ? 'black' : 'white',
+                            fontWeight: 'bold'
+                          }}>
+                            {selectedEmotion.dominantPercentage.toFixed(0)}%
+                          </div>
+                          <div>
+                            <p className="mb-0">This emotion is dominant in <strong>{selectedEmotion.dominantCount}</strong> texts.</p>
+                            <p className="mb-0 text-muted small">Percentage of total: <strong>{selectedEmotion.dominantPercentage.toFixed(2)}%</strong></p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                     
-                    <h6>Presence Statistics:</h6>
-                    <p>This emotion is present in <strong>{selectedEmotion.presenceCount}</strong> texts, which is <strong>{selectedEmotion.presencePercentage.toFixed(2)}%</strong> of all texts.</p>
+                    <div className="card mb-3 border-0 shadow-sm">
+                      <div className="card-body">
+                        <h6 className="card-subtitle mb-2 text-muted">Presence Statistics</h6>
+                        <div className="d-flex align-items-center mb-1">
+                          <div className="emotion-stat-circle" style={{ 
+                            backgroundColor: 'white',
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            marginRight: '12px',
+                            border: `3px solid ${selectedEmotion.color}`,
+                            color: selectedEmotion.color,
+                            fontWeight: 'bold'
+                          }}>
+                            {selectedEmotion.presencePercentage.toFixed(0)}%
+                          </div>
+                          <div>
+                            <p className="mb-0">This emotion is present in <strong>{selectedEmotion.presenceCount}</strong> texts.</p>
+                            <p className="mb-0 text-muted small">Percentage of total: <strong>{selectedEmotion.presencePercentage.toFixed(2)}%</strong></p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                     
-                    <div className="alert alert-info">
-                      <p className="mb-0"><strong>Note:</strong> An emotion is "dominant" when its score is higher than all other emotions in a text. An emotion is "present" when it has any score greater than zero.</p>
+                    <div className="alert alert-info mt-3">
+                      <h6 className="mb-2"><strong>Understanding these metrics:</strong></h6>
+                      <ul className="mb-0 ps-3">
+                        <li><strong>Dominant:</strong> This emotion has the highest score among all emotions in a text.</li>
+                        <li><strong>Present:</strong> This emotion has any score greater than zero in a text.</li>
+                      </ul>
                     </div>
                   </div>
                 )}
               </Modal.Body>
+              <Modal.Footer style={{ borderTop: '1px solid #eee', backgroundColor: '#f8f9fa' }}>
+                <Button 
+                  variant="secondary" 
+                  onClick={() => setShowModal(false)}
+                  style={{ 
+                    backgroundColor: selectedEmotion ? selectedEmotion.color : 'secondary',
+                    color: selectedEmotion ? (selectedEmotion.name === 'Joy' || selectedEmotion.name === 'Anticipation' ? 'black' : 'white') : 'white',
+                    borderColor: selectedEmotion ? selectedEmotion.color : 'secondary'
+                  }}
+                >
+                  Close
+                </Button>
+              </Modal.Footer>
             </Modal>
           </>
         )}
