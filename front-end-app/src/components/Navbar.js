@@ -29,7 +29,7 @@ const Navbar = () => {
       <div className="navbar-links-container">
         <a href="/">Home</a>
         <a href="/visualize">Data</a>
-        <a href="/analyze">Analytics</a>
+        <a href="/emotions">Visual Analytics</a>
         <button onClick={handleScrollToAbout}>About</button>
         <button onClick={handleScrollToTeam}>Contact</button>
 
