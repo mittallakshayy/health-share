@@ -18,7 +18,8 @@ function App() {
         <Route exact path="/visualize" element={<Home />} />
         <Route exact path="/search" element={<Search />} />
         <Route exact path="/analyze" element={<Analytics />} />
-        <Route exact path="/emotions" element={<Visualizations />} />
+        {/* Legacy route - redirect to the new dashboard for backward compatibility */}
+        <Route exact path="/emotions" element={<Analytics />} />
         <Route path="/article/:articleId" element={<Article />} />
       </Routes>
       <Footer></Footer>

@@ -1,0 +1,131 @@
+.comparison-card {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.comparison-card-wrapper {
+  height: 100%;
+  min-height: 500px;
+}
+
+.comparison-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+.comparison-card .card-header {
+  border-bottom: none;
+  padding: 0.75rem 1rem;
+}
+
+.comparison-card .card-body {
+  padding: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Card body containers for specific visualizations */
+.pie-chart-container {
+  height: 500px;
+  overflow: visible;
+}
+
+.word-cloud-container {
+  height: 500px;
+  overflow: visible;
+}
+
+.spider-wheel-container {
+  height: 500px;
+  overflow: visible;
+}
+
+.timeline-container {
+  min-height: 500px;
+  overflow: visible;
+}
+
+/* Override default card styles within visualization components */
+.comparison-card .card-body .card {
+  border: none;
+  box-shadow: none;
+  height: 100%;
+}
+
+/* Fix for nested cards in visualizations */
+.comparison-card .card-body > div,
+.comparison-card .card-body > .card {
+  height: 100%;
+  width: 100%;
+}
+
+/* Fix for SVG rendering */
+.comparison-card svg {
+  max-width: 100%;
+  height: auto !important;
+}
+
+.comparison-section {
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid #eee;
+}
+
+.comparison-section-title {
+  margin-bottom: 1.5rem;
+  padding-left: 0.5rem;
+  border-left: 4px solid #007bff;
+  color: #333;
+  font-weight: 600;
+}
+
+/* Make responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+  .comparison-card {
+    margin-bottom: 1.5rem;
+  }
+  
+  .comparison-card-wrapper {
+    min-height: 400px;
+  }
+  
+  .pie-chart-container,
+  .word-cloud-container,
+  .spider-wheel-container {
+    height: 400px;
+  }
+}
+
+/* Tooltip styles for comparison charts */
+.comparison-tooltip {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border: 1px solid #ddd !important;
+  border-radius: 4px !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1) !important;
+  padding: 10px !important;
+  font-size: 13px !important;
+  min-width: 200px !important;
+  z-index: 1000 !important;
+}
+
+/* Animation for loading state */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+
+/* Fix for D3 visualizations */
+.comparison-card .card-body > div > .card > .card-body {
+  padding: 0;
+  min-height: 400px;
+} 
