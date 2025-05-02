@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import ReactWordcloud from 'react-wordcloud';
 import { Card, Spinner, Alert, Badge } from 'react-bootstrap';
-import * as d3 from 'd3';
-import { schemeCategory10 } from 'd3-scale-chromatic';
+// import * as d3 from 'd3';
+// import { schemeCategory10 } from 'd3-scale-chromatic';
 import 'tippy.js/dist/tippy.css';
 import 'tippy.js/animations/scale.css';
 import { emotionColors } from './emotionColors';

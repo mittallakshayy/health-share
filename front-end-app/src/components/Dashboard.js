@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Container, Row, Col, Alert, Spinner, Card } from 'react-bootstrap';
 import { FaChartPie, FaChartLine, FaTachometerAlt, FaInfoCircle } from 'react-icons/fa';
 import AdvancedSearch from './AdvancedSearch';

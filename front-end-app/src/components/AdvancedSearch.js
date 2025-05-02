@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Form, Button, ToggleButtonGroup, ToggleButton, Badge, ButtonGroup, Tab, Tabs, Row, Col, Card, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { Form, Button, Badge, Tab, Tabs, Row, Col, Card, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import Select from 'react-select';
-import { FaPlus, FaTrash, FaSyncAlt, FaChartBar, FaCalendarAlt, FaDatabase, FaSmile, FaTag, FaRobot, FaInfoCircle } from 'react-icons/fa';
+import { FaPlus, FaTrash, FaChartBar, FaCalendarAlt, FaDatabase, FaSmile, FaTag, FaRobot, FaInfoCircle } from 'react-icons/fa';
 
 const sourceOptions = [
   { value: 'Twitter', label: 'Twitter' },

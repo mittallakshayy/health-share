@@ -1,21 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Container, Row, Col, Card, Nav } from 'react-bootstrap';
 import EmotionWordCloud from './visualizations/EmotionWordCloud';
 import EmotionPieChart from './visualizations/EmotionPieChart';
 import EmotionTimeline from './visualizations/EmotionTimeline';
 import EmotionSpiderWheel from './visualizations/EmotionSpiderWheel';
 import AdvancedSearch from './AdvancedSearch';
-import { useLocation } from 'react-router-dom';
 
 const Visualizations = () => {
   const [activeTab, setActiveTab] = useState('wordcloud');
   const [searchParams, setSearchParams] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [visualizationData, setVisualizationData] = useState(null);
-  
-  const location = useLocation();
-  
+
   // Function to handle search parameters from the AdvancedSearch component
   const handleSearch = (params) => {
     setSearchParams(params);
@@ -35,7 +31,6 @@ const Visualizations = () => {
         }
         
         const data = await response.json();
-        setVisualizationData(data);
       } catch (err) {
         console.error('Error fetching visualization data:', err);
         setError('Failed to fetch visualization data. Please try again.');

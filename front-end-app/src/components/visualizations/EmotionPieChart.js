@@ -120,11 +120,6 @@ const EmotionPieChart = ({ searchParams }) => {
       .innerRadius(0)
       .outerRadius(radius * 0.8);
     
-    // Arc for label positioning
-    const labelArc = d3.arc()
-      .innerRadius(radius * 0.6)
-      .outerRadius(radius * 0.6);
-    
     // Generate the pie data
     const pieData = pie(data);
     
@@ -378,6 +373,13 @@ const EmotionPieChart = ({ searchParams }) => {
       d3.selectAll(".emotion-chart-tooltip").remove();
     };
   }, []);
+
+  // Create a Map to deduplicate by date and combine values
+  useEffect(() => {
+    if (selectedEmotion) {
+      fetchEmotionTexts(selectedEmotion.name);
+    }
+  }, [selectedEmotion, fetchEmotionTexts]);
   
   return (
     <Card>

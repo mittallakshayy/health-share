@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Badge, Tabs, Tab, Alert } from 'react-bootstrap';
+import { Container, Row, Col, Card, Alert } from 'react-bootstrap';
 import { FaChartPie, FaCloud, FaSpider, FaChartLine } from 'react-icons/fa';
 import EmotionPieChart from './visualizations/EmotionPieChart';
 import EmotionWordCloud from './visualizations/EmotionWordCloud';
