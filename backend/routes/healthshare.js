@@ -412,4 +412,427 @@ router.get("/api/wordcloud-data", async (req, res, next) => {
   }
 });
 
+// Endpoint specifically for emotion pie chart data
+router.get("/api/emotion-distribution", async (req, res, next) => {
+  try {
+    const { sources, startDate, endDate, emotions } = req.query;
+    
+    // Build WHERE clause and params
+    let whereClause = "1=1";
+    const queryParams = [];
+    let paramCounter = 1;
+    
+    // Add sources filter if provided
+    if (sources && sources.length > 0) {
+      const sourceArray = sources.split(',').filter(Boolean);
+      if (sourceArray.length > 0) {
+        const sourcePlaceholders = sourceArray.map(() => `$${paramCounter++}`).join(', ');
+        whereClause += ` AND data_source IN (${sourcePlaceholders})`;
+        queryParams.push(...sourceArray);
+      }
+    }
+
+    // Add date range filter if provided
+    if (startDate) {
+      whereClause += ` AND created_at >= $${paramCounter++}`;
+      queryParams.push(startDate);
+    }
+    if (endDate) {
+      whereClause += ` AND created_at <= $${paramCounter++}`;
+      queryParams.push(endDate);
+    }
+    
+    // Add emotion filters if provided - improved handling
+    if (emotions && emotions.length > 0) {
+      const emotionArray = emotions.split(',').filter(emotion => 
+        emotion && emotion.trim() !== '' && emotion.trim() !== 'All'
+      );
+      
+      // Only apply emotion filter if there are specific emotions (not 'All')
+      if (emotionArray.length > 0) {
+        const emotionConditions = emotionArray.map(emotion => {
+          // Convert to lowercase for case-insensitive matching
+          const emotionLower = emotion.toLowerCase();
+          return `LOWER(dominant_emotion) = LOWER($${paramCounter++})`;
+        });
+        
+        if (emotionConditions.length > 0) {
+          whereClause += ` AND (${emotionConditions.join(' OR ')})`;
+          queryParams.push(...emotionArray);
+        }
+      }
+    }
+    
+    // First, get the total count
+    console.log("Count query where clause:", whereClause);
+    console.log("Count query params:", queryParams);
+    const countQuery = `SELECT COUNT(*) as total FROM rawdata_with_emotion WHERE ${whereClause}`;
+    const totalResult = await db.query(countQuery, queryParams);
+    const totalCount = parseInt(totalResult.rows[0].total);
+    
+    // Query to count dominant emotions
+    const sqlQuery = `
+      SELECT 
+        dominant_emotion,
+        COUNT(*) as count
+      FROM rawdata_with_emotion
+      WHERE ${whereClause}
+      GROUP BY dominant_emotion
+      ORDER BY count DESC
+    `;
+    
+    console.log("Emotion distribution query:", sqlQuery);
+    console.log("Query params:", queryParams);
+    
+    const emotionResult = await db.query(sqlQuery, queryParams);
+    
+    // Query for texts of each emotion (limited to 10 per emotion)
+    let emotionTextQuery = `
+      WITH ranked_texts AS (
+        SELECT 
+          text_id,
+          text,
+          dominant_emotion,
+          created_at,
+          ROW_NUMBER() OVER (PARTITION BY dominant_emotion ORDER BY created_at DESC) as rn
+        FROM rawdata_with_emotion
+        WHERE ${whereClause}
+      )
+      SELECT text_id, text, dominant_emotion, created_at
+      FROM ranked_texts
+      WHERE rn <= 10
+      ORDER BY dominant_emotion, created_at DESC
+    `;
+    
+    const textResult = await db.query(emotionTextQuery, queryParams);
+    
+    // Organize sample texts by emotion
+    const textsByEmotion = {};
+    textResult.rows.forEach(row => {
+      if (!textsByEmotion[row.dominant_emotion]) {
+        textsByEmotion[row.dominant_emotion] = [];
+      }
+      textsByEmotion[row.dominant_emotion].push({
+        id: row.text_id,
+        text: row.text,
+        created_at: row.created_at
+      });
+    });
+    
+    // Prepare data for the pie chart
+    const emotionData = emotionResult.rows.map(row => ({
+      name: row.dominant_emotion,
+      value: parseInt(row.count),
+      percentage: (parseInt(row.count) / totalCount * 100).toFixed(2),
+      sampleTexts: textsByEmotion[row.dominant_emotion] || []
+    }));
+    
+    res.status(200).json({
+      emotionData,
+      totalCount
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+// Endpoint specifically for emotion texts
+router.get("/api/emotion-texts", async (req, res, next) => {
+  try {
+    const { sources, startDate, endDate, emotion } = req.query;
+    
+    if (!emotion) {
+      return res.status(400).json({ error: "Emotion parameter is required" });
+    }
+    
+    // Build query and params
+    let whereClause = "dominant_emotion = $1";
+    const queryParams = [emotion];
+    let paramCounter = 2;
+    
+    // Add sources filter if provided
+    if (sources && sources.length > 0) {
+      const sourceArray = sources.split(',').filter(Boolean);
+      if (sourceArray.length > 0) {
+        const sourcePlaceholders = sourceArray.map(() => `$${paramCounter++}`).join(', ');
+        whereClause += ` AND data_source IN (${sourcePlaceholders})`;
+        queryParams.push(...sourceArray);
+      }
+    }
+
+    // Add date range filter if provided
+    if (startDate) {
+      whereClause += ` AND created_at >= $${paramCounter++}`;
+      queryParams.push(startDate);
+    }
+    if (endDate) {
+      whereClause += ` AND created_at <= $${paramCounter++}`;
+      queryParams.push(endDate);
+    }
+    
+    // Query for all texts with this emotion
+    const sqlQuery = `
+      SELECT 
+        text_id as id, 
+        text, 
+        created_at, 
+        data_source
+      FROM rawdata_with_emotion
+      WHERE ${whereClause}
+      ORDER BY created_at DESC
+    `;
+    
+    const result = await db.query(sqlQuery, queryParams);
+    
+    res.status(200).json({
+      texts: result.rows,
+      count: result.rowCount
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+// New endpoint for emotion pie chart data using max emotion values
+router.get("/api/emotion-max-distribution", async (req, res, next) => {
+  try {
+    const { sources, startDate, endDate, emotions } = req.query;
+    
+    // Build WHERE clause and params
+    let whereClause = "1=1";
+    const queryParams = [];
+    let paramCounter = 1;
+    
+    // Add sources filter if provided
+    if (sources && sources.length > 0) {
+      const sourceArray = sources.split(',').filter(Boolean);
+      if (sourceArray.length > 0) {
+        const sourcePlaceholders = sourceArray.map(() => `$${paramCounter++}`).join(', ');
+        whereClause += ` AND data_source IN (${sourcePlaceholders})`;
+        queryParams.push(...sourceArray);
+      }
+    }
+
+    // Add date range filter if provided
+    if (startDate) {
+      whereClause += ` AND created_at >= $${paramCounter++}`;
+      queryParams.push(startDate);
+    }
+    if (endDate) {
+      whereClause += ` AND created_at <= $${paramCounter++}`;
+      queryParams.push(endDate);
+    }
+    
+    // Add emotion filters if provided
+    if (emotions && emotions.length > 0) {
+      const emotionArray = emotions.split(',').filter(emotion => 
+        emotion && emotion.trim() !== '' && emotion.trim() !== 'All'
+      );
+      
+      // Only apply emotion filter if there are specific emotions (not 'All')
+      if (emotionArray.length > 0) {
+        const emotionConditions = [];
+        
+        emotionArray.forEach(emotion => {
+          const emotionLower = emotion.toLowerCase();
+          
+          // For each emotion, check if it's the maximum emotion in a text
+          switch(emotionLower) {
+            case 'anger':
+              emotionConditions.push(`anger > GREATEST(anticipation, disgust, fear, joy, sadness, surprise, trust)`);
+              break;
+            case 'anticipation':
+              emotionConditions.push(`anticipation > GREATEST(anger, disgust, fear, joy, sadness, surprise, trust)`);
+              break;
+            case 'disgust':
+              emotionConditions.push(`disgust > GREATEST(anger, anticipation, fear, joy, sadness, surprise, trust)`);
+              break;
+            case 'fear':
+              emotionConditions.push(`fear > GREATEST(anger, anticipation, disgust, joy, sadness, surprise, trust)`);
+              break;
+            case 'joy':
+              emotionConditions.push(`joy > GREATEST(anger, anticipation, disgust, fear, sadness, surprise, trust)`);
+              break;
+            case 'sadness':
+              emotionConditions.push(`sadness > GREATEST(anger, anticipation, disgust, fear, joy, surprise, trust)`);
+              break;
+            case 'surprise':
+              emotionConditions.push(`surprise > GREATEST(anger, anticipation, disgust, fear, joy, sadness, trust)`);
+              break;
+            case 'trust':
+              emotionConditions.push(`trust > GREATEST(anger, anticipation, disgust, fear, joy, sadness, surprise)`);
+              break;
+          }
+        });
+        
+        if (emotionConditions.length > 0) {
+          whereClause += ` AND (${emotionConditions.join(' OR ')})`;
+        }
+      }
+    }
+    
+    // First, get the total count of texts
+    const countQuery = `SELECT COUNT(*) as total FROM rawdata_with_emotion WHERE ${whereClause}`;
+    const totalResult = await db.query(countQuery, queryParams);
+    const totalCount = parseInt(totalResult.rows[0].total);
+    
+    // Query to count texts by their maximum emotion
+    const sqlQuery = `
+      SELECT 
+        CASE
+          WHEN anger > GREATEST(anticipation, disgust, fear, joy, sadness, surprise, trust) THEN 'Anger'
+          WHEN anticipation > GREATEST(anger, disgust, fear, joy, sadness, surprise, trust) THEN 'Anticipation'
+          WHEN disgust > GREATEST(anger, anticipation, fear, joy, sadness, surprise, trust) THEN 'Disgust'
+          WHEN fear > GREATEST(anger, anticipation, disgust, joy, sadness, surprise, trust) THEN 'Fear'
+          WHEN joy > GREATEST(anger, anticipation, disgust, fear, sadness, surprise, trust) THEN 'Joy'
+          WHEN sadness > GREATEST(anger, anticipation, disgust, fear, joy, surprise, trust) THEN 'Sadness'
+          WHEN surprise > GREATEST(anger, anticipation, disgust, fear, joy, sadness, trust) THEN 'Surprise'
+          WHEN trust > GREATEST(anger, anticipation, disgust, fear, joy, sadness, surprise) THEN 'Trust'
+          ELSE 'Mixed'
+        END as max_emotion,
+        COUNT(*) as count
+      FROM rawdata_with_emotion
+      WHERE ${whereClause}
+      GROUP BY max_emotion
+      ORDER BY count DESC
+    `;
+    
+    console.log("Max emotion distribution query:", sqlQuery);
+    console.log("Query params:", queryParams);
+    
+    const emotionResult = await db.query(sqlQuery, queryParams);
+    
+    // Query for sample texts for each max emotion (limited to 10 per emotion)
+    let emotionTextQuery = `
+      WITH ranked_texts AS (
+        SELECT 
+          text_id,
+          text,
+          CASE
+            WHEN anger > GREATEST(anticipation, disgust, fear, joy, sadness, surprise, trust) THEN 'Anger'
+            WHEN anticipation > GREATEST(anger, disgust, fear, joy, sadness, surprise, trust) THEN 'Anticipation'
+            WHEN disgust > GREATEST(anger, anticipation, fear, joy, sadness, surprise, trust) THEN 'Disgust'
+            WHEN fear > GREATEST(anger, anticipation, disgust, joy, sadness, surprise, trust) THEN 'Fear'
+            WHEN joy > GREATEST(anger, anticipation, disgust, fear, sadness, surprise, trust) THEN 'Joy'
+            WHEN sadness > GREATEST(anger, anticipation, disgust, fear, joy, surprise, trust) THEN 'Sadness'
+            WHEN surprise > GREATEST(anger, anticipation, disgust, fear, joy, sadness, trust) THEN 'Surprise'
+            WHEN trust > GREATEST(anger, anticipation, disgust, fear, joy, sadness, surprise) THEN 'Trust'
+            ELSE 'Mixed'
+          END as max_emotion,
+          created_at,
+          anger, anticipation, disgust, fear, joy, sadness, surprise, trust,
+          ROW_NUMBER() OVER (PARTITION BY 
+            CASE
+              WHEN anger > GREATEST(anticipation, disgust, fear, joy, sadness, surprise, trust) THEN 'Anger'
+              WHEN anticipation > GREATEST(anger, disgust, fear, joy, sadness, surprise, trust) THEN 'Anticipation'
+              WHEN disgust > GREATEST(anger, anticipation, fear, joy, sadness, surprise, trust) THEN 'Disgust'
+              WHEN fear > GREATEST(anger, anticipation, disgust, joy, sadness, surprise, trust) THEN 'Fear'
+              WHEN joy > GREATEST(anger, anticipation, disgust, fear, sadness, surprise, trust) THEN 'Joy'
+              WHEN sadness > GREATEST(anger, anticipation, disgust, fear, joy, surprise, trust) THEN 'Sadness'
+              WHEN surprise > GREATEST(anger, anticipation, disgust, fear, joy, sadness, trust) THEN 'Surprise'
+              WHEN trust > GREATEST(anger, anticipation, disgust, fear, joy, sadness, surprise) THEN 'Trust'
+              ELSE 'Mixed'
+            END 
+          ORDER BY created_at DESC) as rn
+        FROM rawdata_with_emotion
+        WHERE ${whereClause}
+      )
+      SELECT 
+        text_id, 
+        text, 
+        max_emotion, 
+        created_at,
+        anger, anticipation, disgust, fear, joy, sadness, surprise, trust
+      FROM ranked_texts
+      WHERE rn <= 10
+      ORDER BY max_emotion, created_at DESC
+    `;
+    
+    const textResult = await db.query(emotionTextQuery, queryParams);
+    
+    // Organize sample texts by emotion and calculate average emotion values
+    const textsByEmotion = {};
+    const emotionAvgsByEmotion = {};
+    
+    textResult.rows.forEach(row => {
+      if (!textsByEmotion[row.max_emotion]) {
+        textsByEmotion[row.max_emotion] = [];
+        emotionAvgsByEmotion[row.max_emotion] = {
+          anger: 0,
+          anticipation: 0,
+          disgust: 0,
+          fear: 0,
+          joy: 0,
+          sadness: 0,
+          surprise: 0,
+          trust: 0,
+          count: 0
+        };
+      }
+      
+      // Add text to sample texts
+      textsByEmotion[row.max_emotion].push({
+        id: row.text_id,
+        text: row.text,
+        created_at: row.created_at,
+        emotions: {
+          anger: parseFloat(row.anger),
+          anticipation: parseFloat(row.anticipation),
+          disgust: parseFloat(row.disgust),
+          fear: parseFloat(row.fear),
+          joy: parseFloat(row.joy),
+          sadness: parseFloat(row.sadness),
+          surprise: parseFloat(row.surprise),
+          trust: parseFloat(row.trust)
+        }
+      });
+      
+      // Sum emotion values for averaging later
+      emotionAvgsByEmotion[row.max_emotion].anger += parseFloat(row.anger);
+      emotionAvgsByEmotion[row.max_emotion].anticipation += parseFloat(row.anticipation);
+      emotionAvgsByEmotion[row.max_emotion].disgust += parseFloat(row.disgust);
+      emotionAvgsByEmotion[row.max_emotion].fear += parseFloat(row.fear);
+      emotionAvgsByEmotion[row.max_emotion].joy += parseFloat(row.joy);
+      emotionAvgsByEmotion[row.max_emotion].sadness += parseFloat(row.sadness);
+      emotionAvgsByEmotion[row.max_emotion].surprise += parseFloat(row.surprise);
+      emotionAvgsByEmotion[row.max_emotion].trust += parseFloat(row.trust);
+      emotionAvgsByEmotion[row.max_emotion].count++;
+    });
+    
+    // Calculate averages
+    Object.keys(emotionAvgsByEmotion).forEach(emotion => {
+      const counts = emotionAvgsByEmotion[emotion].count;
+      if (counts > 0) {
+        emotionAvgsByEmotion[emotion].anger /= counts;
+        emotionAvgsByEmotion[emotion].anticipation /= counts;
+        emotionAvgsByEmotion[emotion].disgust /= counts;
+        emotionAvgsByEmotion[emotion].fear /= counts;
+        emotionAvgsByEmotion[emotion].joy /= counts;
+        emotionAvgsByEmotion[emotion].sadness /= counts;
+        emotionAvgsByEmotion[emotion].surprise /= counts;
+        emotionAvgsByEmotion[emotion].trust /= counts;
+      }
+    });
+    
+    // Prepare data for the pie chart
+    const emotionData = emotionResult.rows.map(row => ({
+      name: row.max_emotion,
+      value: parseInt(row.count),
+      percentage: (parseInt(row.count) / totalCount * 100).toFixed(2),
+      sampleTexts: textsByEmotion[row.max_emotion] || [],
+      emotionAvgs: emotionAvgsByEmotion[row.max_emotion] || {}
+    }));
+    
+    res.status(200).json({
+      emotionData,
+      totalCount
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
 module.exports = router;

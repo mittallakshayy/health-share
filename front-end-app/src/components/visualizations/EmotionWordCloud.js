@@ -5,18 +5,7 @@ import * as d3 from 'd3';
 import { schemeCategory10 } from 'd3-scale-chromatic';
 import 'tippy.js/dist/tippy.css';
 import 'tippy.js/animations/scale.css';
-
-// Map emotions to colors using d3 color scheme
-const emotionColors = {
-  'Anger': '#e41a1c',       // Red
-  'Anticipation': '#ff7f00', // Orange
-  'Disgust': '#984ea3',     // Purple
-  'Fear': '#a65628',        // Brown
-  'Joy': '#ffff33',         // Yellow
-  'Sadness': '#377eb8',     // Blue
-  'Surprise': '#4daf4a',    // Green
-  'Trust': '#f781bf'        // Pink
-};
+import { emotionColors } from './emotionColors';
 
 const EmotionWordCloud = ({ searchParams }) => {
   const [words, setWords] = useState([]);

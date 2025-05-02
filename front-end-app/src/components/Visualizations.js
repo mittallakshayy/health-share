@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Nav } from 'react-bootstrap';
 import EmotionWordCloud from './visualizations/EmotionWordCloud';
+import EmotionPieChart from './visualizations/EmotionPieChart';
 import AdvancedSearch from './AdvancedSearch';
 import { useLocation } from 'react-router-dom';
 
@@ -75,7 +76,7 @@ const Visualizations = () => {
                     eventKey="emotiontrend" 
                     onClick={() => setActiveTab('emotiontrend')}
                   >
-                    Emotion Trends
+                    Emotion Distribution
                   </Nav.Link>
                 </Nav.Item>
                 <Nav.Item>
@@ -113,7 +114,7 @@ const Visualizations = () => {
               ) : (
                 <div>
                   {activeTab === 'wordcloud' && <EmotionWordCloud searchParams={searchParams} />}
-                  {activeTab === 'emotiontrend' && <div>Emotion Trend Visualization (Coming Soon)</div>}
+                  {activeTab === 'emotiontrend' && <EmotionPieChart searchParams={searchParams} />}
                   {activeTab === 'sourcedistribution' && <div>Source Distribution Visualization (Coming Soon)</div>}
                   {activeTab === 'sentimentanalysis' && <div>Sentiment Analysis Visualization (Coming Soon)</div>}
                 </div>
