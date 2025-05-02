@@ -835,4 +835,189 @@ router.get("/api/emotion-max-distribution", async (req, res, next) => {
   }
 });
 
+// New endpoint for emotion timeline data
+router.get("/api/emotion-timeline", async (req, res, next) => {
+  try {
+    const { sources, startDate, endDate, emotions: emotionFilters } = req.query;
+    
+    // Build WHERE clause and params
+    let whereClause = "1=1";
+    const queryParams = [];
+    let paramCounter = 1;
+    
+    // Add sources filter if provided
+    if (sources && sources.length > 0) {
+      const sourceArray = sources.split(',').filter(Boolean);
+      if (sourceArray.length > 0) {
+        const sourcePlaceholders = sourceArray.map(() => `$${paramCounter++}`).join(', ');
+        whereClause += ` AND data_source IN (${sourcePlaceholders})`;
+        queryParams.push(...sourceArray);
+      }
+    }
+
+    // Add date range filter if provided
+    if (startDate) {
+      whereClause += ` AND created_at >= $${paramCounter++}`;
+      queryParams.push(startDate);
+    }
+    if (endDate) {
+      whereClause += ` AND created_at <= $${paramCounter++}`;
+      queryParams.push(endDate);
+    }
+    
+    // Add emotion filters if provided
+    if (emotionFilters && emotionFilters.length > 0) {
+      const emotionArray = emotionFilters.split(',').filter(emotion => 
+        emotion && emotion.trim() !== '' && emotion.trim() !== 'All'
+      );
+      
+      // Only apply emotion filter if there are specific emotions (not 'All')
+      if (emotionArray.length > 0) {
+        const emotionConditions = [];
+        
+        emotionArray.forEach(emotion => {
+          const emotionLower = emotion.toLowerCase();
+          
+          // For each emotion, check if it's the maximum emotion in a text
+          switch(emotionLower) {
+            case 'anger':
+              emotionConditions.push(`anger > GREATEST(anticipation, disgust, fear, joy, sadness, surprise, trust)`);
+              break;
+            case 'anticipation':
+              emotionConditions.push(`anticipation > GREATEST(anger, disgust, fear, joy, sadness, surprise, trust)`);
+              break;
+            case 'disgust':
+              emotionConditions.push(`disgust > GREATEST(anger, anticipation, fear, joy, sadness, surprise, trust)`);
+              break;
+            case 'fear':
+              emotionConditions.push(`fear > GREATEST(anger, anticipation, disgust, joy, sadness, surprise, trust)`);
+              break;
+            case 'joy':
+              emotionConditions.push(`joy > GREATEST(anger, anticipation, disgust, fear, sadness, surprise, trust)`);
+              break;
+            case 'sadness':
+              emotionConditions.push(`sadness > GREATEST(anger, anticipation, disgust, fear, joy, surprise, trust)`);
+              break;
+            case 'surprise':
+              emotionConditions.push(`surprise > GREATEST(anger, anticipation, disgust, fear, joy, sadness, trust)`);
+              break;
+            case 'trust':
+              emotionConditions.push(`trust > GREATEST(anger, anticipation, disgust, fear, joy, sadness, surprise)`);
+              break;
+          }
+        });
+        
+        if (emotionConditions.length > 0) {
+          whereClause += ` AND (${emotionConditions.join(' OR ')})`;
+        }
+      }
+    }
+    
+    // Query to count emotions grouped by date, only including the maximum emotion for each text
+    const sqlQuery = `
+      WITH max_emotions AS (
+        SELECT 
+          CAST(created_at AS DATE) as date,
+          CASE
+            WHEN anger > GREATEST(anticipation, disgust, fear, joy, sadness, surprise, trust) THEN 'Anger'
+            WHEN anticipation > GREATEST(anger, disgust, fear, joy, sadness, surprise, trust) THEN 'Anticipation'
+            WHEN disgust > GREATEST(anger, anticipation, fear, joy, sadness, surprise, trust) THEN 'Disgust'
+            WHEN fear > GREATEST(anger, anticipation, disgust, joy, sadness, surprise, trust) THEN 'Fear'
+            WHEN joy > GREATEST(anger, anticipation, disgust, fear, sadness, surprise, trust) THEN 'Joy'
+            WHEN sadness > GREATEST(anger, anticipation, disgust, fear, joy, surprise, trust) THEN 'Sadness'
+            WHEN surprise > GREATEST(anger, anticipation, disgust, fear, joy, sadness, trust) THEN 'Surprise'
+            WHEN trust > GREATEST(anger, anticipation, disgust, fear, joy, sadness, surprise) THEN 'Trust'
+            ELSE NULL
+          END as emotion
+        FROM rawdata_with_emotion
+        WHERE ${whereClause}
+        AND GREATEST(anger, anticipation, disgust, fear, joy, sadness, surprise, trust) > 0
+      )
+      SELECT 
+        date,
+        emotion,
+        COUNT(*) as count
+      FROM max_emotions
+      WHERE emotion IS NOT NULL
+      GROUP BY date, emotion
+      ORDER BY date ASC, emotion
+    `;
+    
+    console.log("Emotion timeline query:", sqlQuery);
+    console.log("Query params:", queryParams);
+    
+    const result = await db.query(sqlQuery, queryParams);
+    
+    // Transform data into a format suitable for a stream graph
+    // First, get unique dates and emotions
+    const dates = [...new Set(result.rows.map(row => row.date))];
+    const uniqueEmotions = [...new Set(result.rows.map(row => row.emotion))];
+    
+    // Remove any "Mixed" emotion if it exists
+    const filteredEmotions = uniqueEmotions.filter(emotion => emotion !== 'Mixed');
+    
+    // If we have no data, ensure we return a valid response
+    if (dates.length === 0) {
+      return res.status(200).json({
+        timelineData: [],
+        emotions: filteredEmotions
+      });
+    }
+    
+    // Sort dates in ascending order to ensure proper timeline
+    dates.sort((a, b) => new Date(a) - new Date(b));
+    
+    // Create a map for quick lookups
+    const dataMap = {};
+    result.rows.forEach(row => {
+      if (!dataMap[row.date]) {
+        dataMap[row.date] = {};
+      }
+      
+      // Only add emotions, not "Mixed"
+      if (row.emotion !== 'Mixed') {
+        dataMap[row.date][row.emotion] = parseInt(row.count);
+      }
+    });
+    
+    // Create the final dataset with zero values for missing data points
+    const timelineData = dates.map(date => {
+      const entry = { date };
+      filteredEmotions.forEach(emotion => {
+        entry[emotion] = dataMap[date]?.[emotion] || 0;
+      });
+      return entry;
+    });
+    
+    // If we have just one date point, duplicate it to create at least two points for visualization
+    if (timelineData.length === 1) {
+      const singlePoint = timelineData[0];
+      // Create a second point the next day with the same data
+      const nextDay = new Date(singlePoint.date);
+      nextDay.setDate(nextDay.getDate() + 1);
+      
+      const secondPoint = { 
+        date: nextDay.toISOString().split('T')[0]
+      };
+      
+      // Copy the emotion counts
+      filteredEmotions.forEach(emotion => {
+        secondPoint[emotion] = singlePoint[emotion];
+      });
+      
+      timelineData.push(secondPoint);
+    }
+    
+    console.log("Sending timeline data:", timelineData);
+    
+    res.status(200).json({
+      timelineData,
+      emotions: filteredEmotions
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
 module.exports = router;
