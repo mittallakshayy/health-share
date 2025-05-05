@@ -7,10 +7,12 @@ This document provides an overview of the visualization components available in 
 ### 1. Word Cloud
 Displays the most frequently occurring words in the analyzed texts, with size indicating frequency and color indicating the dominant emotion associated with each word. This visualization helps identify key topics and their emotional context.
 
-[Detailed Documentation](./WordCloud.md)
+[Detailed Documentation](./EmotionWordCloud.md)
 
 ### 2. Emotion Pie Chart
 Shows the distribution of dominant emotions across all analyzed texts, allowing users to quickly understand the overall emotional landscape of the dataset. Each slice represents the percentage of texts where a particular emotion was dominant.
+
+[Detailed Documentation](./EmotionPieChart.md)
 
 ### 3. Emotion Timeline
 Visualizes how emotions change over time using an interactive stream graph. This helps identify emotional trends, patterns, and shifts across different time periods.
