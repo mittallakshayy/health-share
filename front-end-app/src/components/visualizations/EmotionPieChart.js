@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Card, Spinner, Alert, Modal, Button, ListGroup, Row, Col } from 'react-bootstrap';
 import * as d3 from 'd3';
 import { emotionColors } from './emotionColors';
+import API_URL from "../../apis/api";
 
 const EmotionPieChart = ({ searchParams }) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -54,7 +55,7 @@ const EmotionPieChart = ({ searchParams }) => {
         
         console.log("Emotion pie chart query params:", queryParams.toString());
         // Use the new endpoint for max emotion values
-        const response = await fetch(`http://localhost:3003/healthshare/api/emotion-max-distribution?${queryParams.toString()}`);
+        const response = await fetch(`${API_URL}/healthshare/api/emotion-max-distribution?${queryParams.toString()}`);
         
         if (!response.ok) {
           throw new Error(`API request failed with status ${response.status}`);
@@ -316,7 +317,7 @@ const EmotionPieChart = ({ searchParams }) => {
         });
       } else {
         // Fallback to API if no sample texts in our data
-        const response = await fetch(`http://localhost:3003/healthshare/api/emotion-texts?${queryParams.toString()}`);
+        const response = await fetch(`${API_URL}/healthshare/api/emotion-texts?${queryParams.toString()}`);
         
         if (!response.ok) {
           throw new Error(`API request failed with status ${response.status}`);

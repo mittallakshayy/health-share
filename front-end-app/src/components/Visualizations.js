@@ -5,6 +5,7 @@ import EmotionPieChart from './visualizations/EmotionPieChart';
 import EmotionTimeline from './visualizations/EmotionTimeline';
 import EmotionSpiderWheel from './visualizations/EmotionSpiderWheel';
 import AdvancedSearch from './AdvancedSearch';
+import API_URL from "../apis/api";
 
 const Visualizations = () => {
   const [activeTab, setActiveTab] = useState('wordcloud');
@@ -24,7 +25,7 @@ const Visualizations = () => {
     const fetchData = async () => {
       try {
         // In a real implementation, this would use the params to construct the API request
-        const response = await fetch(`http://localhost:3003/healthshare/api/emotion-visualization?${new URLSearchParams(params)}`);
+        const response = await fetch(`${API_URL}/healthshare/api/emotion-visualization?${new URLSearchParams(params)}`);
         
         if (!response.ok) {
           throw new Error(`API request failed with status ${response.status}`);

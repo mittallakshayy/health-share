@@ -3,6 +3,7 @@ import { Card, Spinner, Alert, Badge, ButtonGroup, Button, OverlayTrigger, Toolt
 import * as d3 from 'd3';
 import { emotionColors } from './emotionColors';
 import { FaSearchPlus, FaSearchMinus, FaUndo, FaInfoCircle, FaCalendarAlt } from 'react-icons/fa';
+import API_URL from "../../apis/api";
 
 const EmotionTimeline = ({ searchParams }) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -58,7 +59,7 @@ const EmotionTimeline = ({ searchParams }) => {
           }
         }
         
-        const response = await fetch(`http://localhost:3003/healthshare/api/emotion-timeline?${queryParams.toString()}`);
+        const response = await fetch(`${API_URL}/healthshare/api/emotion-timeline?${queryParams.toString()}`);
         
         if (!response.ok) {
           throw new Error(`API request failed with status ${response.status}`);

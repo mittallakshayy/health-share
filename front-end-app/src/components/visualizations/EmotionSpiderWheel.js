@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Card, Spinner, Alert, Badge, Modal, Button } from 'react-bootstrap';
 import * as d3 from 'd3';
 import { emotionColors } from './emotionColors';
+import API_URL from "../../apis/api";
+
 
 const EmotionSpiderWheel = ({ searchParams }) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -48,7 +50,7 @@ const EmotionSpiderWheel = ({ searchParams }) => {
         }
         
         console.log("Emotion spider query params:", queryParams.toString());
-        const response = await fetch(`http://localhost:3003/healthshare/api/emotion-spider?${queryParams.toString()}`);
+        const response = await fetch(`${API_URL}/healthshare/api/emotion-spider?${queryParams.toString()}`);
         
         if (!response.ok) {
           throw new Error(`API request failed with status ${response.status}`);

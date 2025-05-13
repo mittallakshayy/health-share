@@ -4,6 +4,8 @@ import { Card, Spinner, Alert, Badge } from 'react-bootstrap';
 import 'tippy.js/dist/tippy.css';
 import 'tippy.js/animations/scale.css';
 import { emotionColors } from './emotionColors';
+import API_URL from "../../apis/api";
+
 
 const EmotionWordCloud = ({ searchParams }) => {
   const [words, setWords] = useState([]);
@@ -131,7 +133,7 @@ const EmotionWordCloud = ({ searchParams }) => {
         }
         
         console.log("Query params:", queryParams.toString());
-        const response = await fetch(`http://localhost:3003/healthshare/api/wordcloud-data?${queryParams.toString()}`);
+        const response = await fetch(`${API_URL}/healthshare/api/wordcloud-data?${queryParams.toString()}`);
         
         if (!response.ok) {
           throw new Error(`API request failed with status ${response.status}`);
