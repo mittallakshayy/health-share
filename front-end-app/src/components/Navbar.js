@@ -1,5 +1,6 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import HealthAndSafetyIcon from "@mui/icons-material/HealthAndSafety";
+import { Link } from "react-router-dom";
 import "./Navbar.css";
 
 const Navbar = () => {
@@ -22,14 +23,14 @@ const Navbar = () => {
           fontSize="large"
           style={{ color: "white", cursor: "pointer" }}
         />
-        <a href="/" style={{ textDecoration: "none", color: "white" }}>
+        <Link to="/" style={{ textDecoration: "none", color: "white" }}>
           HealthShare
-        </a>
+        </Link>
       </div>
       <div className="navbar-links-container">
-        <a href="/">Home</a>
-        <a href="/visualize">Data</a>
-        <a href="/analyze">Analytics</a>
+        <Link to="/">Home</Link>
+        <Link to="/visualize">Data</Link>
+        <Link to="/analyze" className="highlight-link">Visual Analytics</Link>
         <button onClick={handleScrollToAbout}>About</button>
         <button onClick={handleScrollToTeam}>Contact</button>
 

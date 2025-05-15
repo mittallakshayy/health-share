@@ -291,7 +291,7 @@ function Home() {
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center" }}>
-          <Link to="/search">
+          <Link to="/emotions">
             <button
               style={{
                 marginLeft: "10px",

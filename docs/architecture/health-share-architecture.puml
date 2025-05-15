@@ -1,0 +1,72 @@
+@startuml Health-Share Architecture
+!define AWSPUML https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v14.0/dist
+!include AWSPUML/AWSCommon.puml
+!include AWSPUML/Compute/EC2.puml
+!include AWSPUML/Database/RDS.puml
+
+skinparam backgroundColor white
+skinparam componentStyle rectangle
+skinparam linetype ortho
+
+package "Amazon EC2 Instance" {
+  component "Client (Browser)" as Client {
+    [React App] as ReactApp
+    package "Visualization Components" as VisualizationComponents {
+      [EmotionWordCloud] as WordCloud
+      [EmotionPieChart] as PieChart
+      [EmotionTimeline] as Timeline
+      [EmotionSpiderWheel] as SpiderWheel
+    }
+    [AdvancedSearch] as Search
+    
+    Search --> WordCloud: provides filters
+    Search --> PieChart: provides filters
+    Search --> Timeline: provides filters
+    Search --> SpiderWheel: provides filters
+  }
+  
+  component "Nginx Reverse Proxy" as Nginx {
+    [Static File Server] as StaticServer
+    [API Proxy] as APIProxy
+    [SSL Termination] as SSL
+  }
+
+  component "Express Backend" as Express {
+    package "API Endpoints" as APIEndpoints {
+      [/wordcloud-data] as WordCloudAPI
+      [/emotion-max-distribution] as PieChartAPI
+      [/emotion-texts] as TextsAPI
+      [/emotion-timeline] as TimelineAPI
+      [/emotion-spider] as SpiderAPI
+    }
+    [Data Processing] as DataProcessing
+  }
+
+  database "PostgreSQL Database" as PostgreSQL {
+    [Emotions Data] as EmotionsData
+    [Text Entries] as TextEntries
+    [Sources] as Sources
+  }
+  
+  ReactApp --> Nginx: HTTP/HTTPS requests
+  Nginx --> Express: proxies API requests
+  Express --> PostgreSQL: SQL queries
+  
+  APIProxy --> APIEndpoints: routes requests
+  
+  WordCloudAPI --> DataProcessing
+  PieChartAPI --> DataProcessing
+  TextsAPI --> DataProcessing
+  TimelineAPI --> DataProcessing
+  SpiderAPI --> DataProcessing
+  
+  DataProcessing --> EmotionsData: queries
+  DataProcessing --> TextEntries: queries
+  DataProcessing --> Sources: queries
+}
+
+Client -[hidden]-> Nginx
+Nginx -[hidden]-> Express
+Express -[hidden]-> PostgreSQL
+
+@enduml 
